@@ -26,13 +26,49 @@ body {
 }
 
 /*
- * Grid slot for a single bracket match. Row placement is computed in
- * KnockoutBracket.tsx (explicit, pixel-sized row tracks shared across all
- * rounds), which is what keeps rounds vertically aligned; this class no
- * longer draws connector lines between matches.
+ * Reserves space for the scrollbar track up front, so a classic
+ * (non-overlay) scrollbar doesn't cover match card content -- particularly
+ * the score numbers pinned to the right edge of each card.
  */
-.bracket-slot {
-  position: relative;
+.bracket-scroll-x,
+.bracket-scroll-y {
+  scrollbar-gutter: stable;
+}
+
+/*
+ * Native scroll affordance buttons (CSS Carousels spec, Chromium-only as
+ * of 2026; other browsers just don't render them -- no functional loss,
+ * since the container is still scrollable by drag/wheel/keyboard). The UA
+ * automatically disables/hides a button once there's nothing left to
+ * scroll in that direction, so no JS is needed to track scroll position.
+ */
+.bracket-scroll-x::scroll-button(left),
+.bracket-scroll-x::scroll-button(right),
+.bracket-scroll-y::scroll-button(up),
+.bracket-scroll-y::scroll-button(down) {
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  border: 1px solid var(--foreground);
+  opacity: 0.5;
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 0.7rem;
+  cursor: pointer;
+}
+
+.bracket-scroll-x::scroll-button(left) {
+  content: "←";
+}
+.bracket-scroll-x::scroll-button(right) {
+  content: "→";
+}
+.bracket-scroll-y::scroll-button(up) {
+  content: "↑";
+}
+.bracket-scroll-y::scroll-button(down) {
+  content: "↓";
 }

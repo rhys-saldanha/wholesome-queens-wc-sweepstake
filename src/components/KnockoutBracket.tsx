@@ -178,7 +178,7 @@ function RoundColumn({
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <div
-      className="flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto"
+      className="bracket-scroll-y flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto"
       style={
         {
           scrollSnapAlign: "start",
@@ -206,7 +206,10 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
     // a snap point, and `scroll-initial-target` (Chromium; degrades
     // gracefully to just "starts at the left" elsewhere) declares which
     // snap point the container should be scrolled to on first render.
-    <div className="overflow-x-auto pb-2" style={{ scrollSnapType: "x proximity" } as CSSProperties}>
+    <div
+      className="bracket-scroll-x overflow-x-auto pb-2"
+      style={{ scrollSnapType: "x proximity" } as CSSProperties}
+    >
       <div className="flex items-start gap-14">
         {rounds.map((r, i) => (
           <RoundColumn
