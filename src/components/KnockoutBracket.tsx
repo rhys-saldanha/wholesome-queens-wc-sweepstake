@@ -169,13 +169,11 @@ function RoundColumn({
   entries,
   isCurrent,
   maxHeight,
-  anchorName,
 }: {
   round: string;
   entries: BracketEntry[];
   isCurrent: boolean;
   maxHeight: number;
-  anchorName: string;
 }) {
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
   return (
@@ -185,8 +183,6 @@ function RoundColumn({
         {
           scrollSnapAlign: "start",
           maxHeight,
-          anchorName,
-          "--scroll-anchor": anchorName,
           ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
         } as CSSProperties
       }
@@ -212,7 +208,7 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
     // snap point the container should be scrolled to on first render.
     <div
       className="bracket-scroll-x overflow-x-auto pb-2"
-      style={{ scrollSnapType: "x proximity", anchorName: "--h-scroll" } as CSSProperties}
+      style={{ scrollSnapType: "x proximity" } as CSSProperties}
     >
       <div className="flex items-start gap-14">
         {rounds.map((r, i) => (
@@ -222,7 +218,6 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
             entries={r.entries}
             isCurrent={i === currentRoundIndex}
             maxHeight={maxHeight}
-            anchorName={`--v-scroll-${i}`}
           />
         ))}
       </div>
