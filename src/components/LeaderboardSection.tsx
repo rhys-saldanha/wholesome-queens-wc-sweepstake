@@ -1,5 +1,5 @@
-import { Team } from "./Team";
 import { PrizeTag } from "./PrizeTag";
+import { TeamsCell } from "./TeamsCell";
 import type { Leaderboard } from "@/lib/types";
 
 export function LeaderboardSection({ leaderboard }: { leaderboard: Leaderboard }) {
@@ -38,25 +38,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: Leaderboard }
                   </div>
                 </td>
                 <td className="px-3 py-3">
-                  <details>
-                    <summary className="cursor-pointer text-foreground/70 select-none">
-                      {entry.teamRecords.length} teams
-                    </summary>
-                    <ul className="mt-2 flex flex-col gap-1">
-                      {entry.teamRecords.map((t) => (
-                        <li
-                          key={t.apiFootballId}
-                          className={`flex items-center justify-between gap-3 ${t.eliminated ? "opacity-40" : ""}`}
-                        >
-                          <Team teamId={t.apiFootballId} eliminated={t.eliminated} size="sm" />
-                          <span className="text-xs text-foreground/60 tabular-nums">
-                            {t.eliminated && "OUT · "}
-                            {t.record.wins}W {t.record.draws}D {t.record.losses}L · {t.record.points}pt
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </details>
+                  <TeamsCell entry={entry} />
                 </td>
                 <td className="px-3 py-3 text-right tabular-nums text-foreground/70">
                   {entry.teamsRemaining}/{entry.teamRecords.length}
