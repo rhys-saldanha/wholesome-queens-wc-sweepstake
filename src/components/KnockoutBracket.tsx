@@ -53,10 +53,16 @@ function MatchCard({ fixture }: { fixture: Fixture }) {
         {played && <span className="tabular-nums font-semibold">{fixture.goalsAway}</span>}
       </div>
       <span
-        className={`self-start rounded px-1 text-xs font-medium tabular-nums ${
+        className={`inline-flex w-fit items-center gap-1.5 self-start rounded px-1 text-xs font-medium tabular-nums ${
           live ? "bg-red-500/15 text-red-500" : "text-foreground/40"
         }`}
       >
+        {live && (
+          <span className="relative flex h-2 w-2">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+          </span>
+        )}
         {fixture.status === "NS" ? <Countdown targetDate={fixture.date} /> : text}
       </span>
     </div>

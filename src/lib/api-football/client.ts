@@ -35,5 +35,5 @@ export async function apiFootballGet(
 export function getRevalidateSeconds(): number {
   const raw = process.env.FIXTURES_REVALIDATE_SECONDS;
   const parsed = raw ? Number(raw) : NaN;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 90;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 300;
 }

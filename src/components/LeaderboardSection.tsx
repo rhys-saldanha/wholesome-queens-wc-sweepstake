@@ -1,27 +1,17 @@
 import { TeamChip } from "./TeamChip";
 import { PrizeTag } from "./PrizeTag";
-import { RefreshControl } from "./RefreshControl";
 import type { Leaderboard } from "@/lib/types";
 
-export function LeaderboardSection({
-  leaderboard,
-  lastUpdated,
-}: {
-  leaderboard: Leaderboard;
-  lastUpdated: string;
-}) {
+export function LeaderboardSection({ leaderboard }: { leaderboard: Leaderboard }) {
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <h2 className="text-lg font-semibold">Leaderboard</h2>
-          <p className="text-sm text-foreground/60">
-            {leaderboard.finalStatus === "finished"
-              ? "The final has been played — champion and runner-up prizes are settled."
-              : "Champion (£30) and runner-up (£20) go to whoever drafted the two finalists — shown once the final is played. Sorted lowest points first: whoever's on top is most at risk of the £10 wooden spoon."}
-          </p>
-        </div>
-        <RefreshControl lastUpdated={lastUpdated} />
+      <div>
+        <h2 className="text-lg font-semibold">Leaderboard</h2>
+        <p className="text-sm text-foreground/60">
+          {leaderboard.finalStatus === "finished"
+            ? "The final has been played — champion and runner-up prizes are settled."
+            : "Champion (£30) and runner-up (£20) go to whoever drafted the two finalists — shown once the final is played. Sorted lowest points first: whoever's on top is most at risk of the £10 wooden spoon."}
+        </p>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-foreground/10">

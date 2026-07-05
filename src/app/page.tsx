@@ -4,6 +4,7 @@ import { buildLeaderboard } from "@/lib/api-football/leaderboard";
 import { LeaderboardSection } from "@/components/LeaderboardSection";
 import { GroupsGrid } from "@/components/GroupsGrid";
 import { KnockoutBracket } from "@/components/KnockoutBracket";
+import { RefreshControl } from "@/components/RefreshControl";
 import type { Fixture, GroupStanding } from "@/lib/types";
 
 export default async function Home() {
@@ -29,7 +30,10 @@ export default async function Home() {
   return (
     <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-10 px-4 py-10 sm:px-6">
       <header className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold tracking-tight">World Cup 2026 Sweepstake</h1>
+        <div className="flex flex-wrap items-baseline justify-between gap-2">
+          <h1 className="text-2xl font-bold tracking-tight">World Cup 2026 Sweepstake</h1>
+          <RefreshControl lastUpdated={new Date().toISOString()} />
+        </div>
         <p className="text-sm text-foreground/60">
           6 players, 8 teams each, £10 a head. 🏆 Champion &amp; 🥈 runner-up prizes go to whoever
           drafted the two finalists; the 🥄 wooden spoon goes to the lowest points total.
@@ -43,7 +47,7 @@ export default async function Home() {
         </div>
       )}
 
-      <LeaderboardSection leaderboard={leaderboard} lastUpdated={new Date().toISOString()} />
+      <LeaderboardSection leaderboard={leaderboard} />
       <KnockoutBracket fixtures={fixtures} />
       <GroupsGrid groups={groups} />
     </main>
