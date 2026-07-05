@@ -35,40 +35,83 @@ body {
   scrollbar-gutter: stable;
 }
 
-/*
- * Native scroll affordance buttons (CSS Carousels spec, Chromium-only as
- * of 2026; other browsers just don't render them -- no functional loss,
- * since the container is still scrollable by drag/wheel/keyboard). The UA
- * automatically disables/hides a button once there's nothing left to
- * scroll in that direction, so no JS is needed to track scroll position.
- */
-.bracket-scroll-x::scroll-button(left),
-.bracket-scroll-x::scroll-button(right),
-.bracket-scroll-y::scroll-button(up),
-.bracket-scroll-y::scroll-button(down) {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border-radius: 9999px;
-  border: 1px solid var(--foreground);
-  opacity: 0.5;
-  background: var(--background);
-  color: var(--foreground);
-  font-size: 0.7rem;
-  cursor: pointer;
+/* Each match card is a vertical snap point when scrolling within a round. */
+.bracket-scroll-y {
+  scroll-snap-type: y proximity;
+}
+.bracket-match-card {
+  scroll-snap-align: start;
 }
 
-.bracket-scroll-x::scroll-button(left) {
-  content: "←";
+.bracket-scroll-y {
+  /* Keeps scroll-snap (and scroll-initial-target) from landing a card
+     right under the sticky round heading -- see the heading's own height
+     reserved here so snapped content stops just below it instead. */
+  scroll-padding-top: 2rem;
 }
-.bracket-scroll-x::scroll-button(right) {
-  content: "→";
-}
-.bracket-scroll-y::scroll-button(up) {
-  content: "↑";
-}
-.bracket-scroll-y::scroll-button(down) {
-  content: "↓";
+
+/*
+ * Where supported (CSS Anchor Positioning + scroll-button, both very new),
+ * upgrade to real floating scroll-button icons instead of just the shadow
+ * fade above -- anchored to, and centered on, the scroll container itself
+ * via anchor(center), rather than relying on normal document flow (which
+ * is what made earlier attempts render in the wrong place). Falls back to
+ * the shadow-only version everywhere else via @supports.
+ */
+@supports (anchor-name: --foo) and (position-anchor: --foo) {
+  .bracket-scroll-x::scroll-button(left),
+  .bracket-scroll-x::scroll-button(right),
+  .bracket-scroll-y::scroll-button(up),
+  .bracket-scroll-y::scroll-button(down) {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--foreground);
+    opacity: 0.7;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 0.75rem;
+    cursor: pointer;
+  }
+
+  .bracket-scroll-x::scroll-button(left):disabled,
+  .bracket-scroll-x::scroll-button(right):disabled,
+  .bracket-scroll-y::scroll-button(up):disabled,
+  .bracket-scroll-y::scroll-button(down):disabled {
+    display: none;
+  }
+
+  .bracket-scroll-x::scroll-button(left) {
+    content: "←";
+    position-anchor: --h-scroll;
+    left: anchor(left);
+    top: anchor(center);
+    transform: translate(4px, -50%);
+  }
+  .bracket-scroll-x::scroll-button(right) {
+    content: "→";
+    position-anchor: --h-scroll;
+    right: anchor(right);
+    top: anchor(center);
+    transform: translate(-4px, -50%);
+  }
+  .bracket-scroll-y::scroll-button(up) {
+    content: "↑";
+    position-anchor: var(--scroll-anchor);
+    top: anchor(top);
+    left: anchor(center);
+    transform: translate(-50%, 4px);
+  }
+  .bracket-scroll-y::scroll-button(down) {
+    content: "↓";
+    position-anchor: var(--scroll-anchor);
+    bottom: anchor(bottom);
+    left: anchor(center);
+    transform: translate(-50%, -4px);
+  }
 }

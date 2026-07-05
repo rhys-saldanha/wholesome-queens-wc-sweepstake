@@ -46,7 +46,7 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
     const targetDate = ESTIMATED_ROUND_DATE[entry.round] ?? ESTIMATED_ROUND_DATE.Final;
     return (
       <div
-        className="flex w-56 flex-col gap-1 rounded-md border-2 border-dashed border-foreground/10 bg-background px-3 py-2 text-sm"
+        className="bracket-match-card flex w-56 flex-col gap-1 rounded-md border-2 border-dashed border-foreground/10 bg-background px-3 py-2 text-sm"
         role="group"
         aria-label="Teams to be determined"
       >
@@ -71,7 +71,7 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
 
   return (
     <div
-      className="flex w-56 flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
+      className="bracket-match-card flex w-56 flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
       role="group"
       aria-label={`${home.name} vs ${away.name}`}
     >
@@ -169,11 +169,13 @@ function RoundColumn({
   entries,
   isCurrent,
   maxHeight,
+  anchorName,
 }: {
   round: string;
   entries: BracketEntry[];
   isCurrent: boolean;
   maxHeight: number;
+  anchorName: string;
 }) {
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
   return (
@@ -183,6 +185,8 @@ function RoundColumn({
         {
           scrollSnapAlign: "start",
           maxHeight,
+          anchorName,
+          "--scroll-anchor": anchorName,
           ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
         } as CSSProperties
       }
@@ -208,7 +212,7 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
     // snap point the container should be scrolled to on first render.
     <div
       className="bracket-scroll-x overflow-x-auto pb-2"
-      style={{ scrollSnapType: "x proximity" } as CSSProperties}
+      style={{ scrollSnapType: "x proximity", anchorName: "--h-scroll" } as CSSProperties}
     >
       <div className="flex items-start gap-14">
         {rounds.map((r, i) => (
@@ -218,6 +222,7 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
             entries={r.entries}
             isCurrent={i === currentRoundIndex}
             maxHeight={maxHeight}
+            anchorName={`--v-scroll-${i}`}
           />
         ))}
       </div>
