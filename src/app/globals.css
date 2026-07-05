@@ -26,42 +26,13 @@ body {
 }
 
 /*
- * Single-elimination bracket connectors, drawn with CSS Grid rather than
- * percentage-based absolute positioning. Every match sits in a grid "slot"
- * (a wrapper div) that spans an explicit, pixel-sized set of row tracks
- * shared across all rounds -- round k's match i occupies rows
- * [i * 2^k, (i+1) * 2^k). Because the tracks are explicit pixel sizes
- * (not `auto`), percentage heights on the connector pseudo-elements
- * resolve correctly, which plain flexbox auto-height items can't guarantee.
- * The match card itself is centered within its slot; the connector lines
- * are purely decorative (::before/::after aren't in the accessibility tree).
+ * Grid slot for a single bracket match. Row placement is computed in
+ * KnockoutBracket.tsx (explicit, pixel-sized row tracks shared across all
+ * rounds), which is what keeps rounds vertically aligned; this class no
+ * longer draws connector lines between matches.
  */
 .bracket-slot {
   position: relative;
   display: flex;
   align-items: center;
-}
-
-/*
- * Spans the full column gap in one piece, so there's no seam between an
- * "outgoing" stub from the previous round and an "incoming" elbow here.
- * The two horizontal arms (top/bottom borders) start at the far left,
- * touching the top edge of the first feeder and the bottom edge of the
- * last feeder -- i.e. the full height of this match's own slot -- and
- * converge into the vertical merge bar on the right (border-right), right
- * where this match sits (the merge bar's own midpoint = 50% of the slot,
- * which is where the match card is centered).
- */
-.bracket-slot--connect-in::before {
-  content: "";
-  position: absolute;
-  left: calc(-1 * var(--bracket-gap, 56px));
-  top: 0;
-  height: 100%;
-  width: var(--bracket-gap, 56px);
-  border-right: 1px solid var(--foreground);
-  border-top: 1px solid var(--foreground);
-  border-bottom: 1px solid var(--foreground);
-  border-radius: 4px 0 0 4px;
-  opacity: 0.35;
 }

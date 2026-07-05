@@ -40,7 +40,7 @@ function MatchCard({ fixture }: { fixture: Fixture }) {
 
   return (
     <div
-      className="flex w-56 flex-col gap-1 rounded-md border border-foreground/10 bg-background px-3 py-2 text-sm"
+      className="flex w-56 flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
       role="group"
       aria-label={`${home.name} vs ${away.name}`}
     >
@@ -183,13 +183,8 @@ function BracketGrid({ rounds }: { rounds: RoundInfo[] }) {
           {
             gridTemplateColumns: `repeat(${rounds.length}, ${COLUMN_WIDTH}px)`,
             gridTemplateRows: `${HEADER_ROW_HEIGHT}px repeat(${baseRows}, minmax(${MIN_ROW_HEIGHT}px, 1fr))`,
-            // An explicit height is what lets the `1fr` row tracks (and thus
-            // the connector pseudo-elements, sized as percentages of their
-            // own row-spanning slot) resolve to definite pixel values instead
-            // of the browser treating them as `auto`.
             height: HEADER_ROW_HEIGHT + baseRows * MIN_ROW_HEIGHT,
             columnGap: COLUMN_GAP,
-            "--bracket-gap": `${COLUMN_GAP}px`,
           } as CSSProperties
         }
       >
@@ -210,7 +205,7 @@ function BracketGrid({ rounds }: { rounds: RoundInfo[] }) {
             return (
               <div
                 key={fixture.id}
-                className={`bracket-slot ${visibleIdx > 0 ? "bracket-slot--connect-in" : ""}`}
+                className="bracket-slot"
                 style={{
                   gridColumn: visibleIdx + 1,
                   gridRow: `${rowStart + 1} / span ${span}`,
