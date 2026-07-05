@@ -87,28 +87,28 @@ body {
   }
 
   .bracket-scroll-x::scroll-button(left) {
-    content: "←";
+    content: "←" / "Scroll to earlier round";
     position-anchor: --h-scroll;
     left: anchor(left);
     top: anchor(center);
     transform: translate(4px, -50%);
   }
   .bracket-scroll-x::scroll-button(right) {
-    content: "→";
+    content: "→" / "Scroll to later round";
     position-anchor: --h-scroll;
     right: anchor(right);
     top: anchor(center);
     transform: translate(-4px, -50%);
   }
   .bracket-scroll-y::scroll-button(up) {
-    content: "↑";
+    content: "↑" / "Scroll up";
     position-anchor: var(--scroll-anchor);
     top: anchor(top);
     left: anchor(center);
     transform: translate(-50%, 4px);
   }
   .bracket-scroll-y::scroll-button(down) {
-    content: "↓";
+    content: "↓" / "Scroll down";
     position-anchor: var(--scroll-anchor);
     bottom: anchor(bottom);
     left: anchor(center);
