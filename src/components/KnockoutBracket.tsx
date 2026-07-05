@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import { TeamChip } from "./TeamChip";
+import { Team } from "./Team";
 import { Countdown } from "./Countdown";
 import { resolveTeam } from "@/lib/data/team-lookup";
 import { KNOCKOUT_ROUND_ORDER, KNOCKOUT_ROUND_SIZES } from "@/lib/rounds";
@@ -52,6 +52,18 @@ function statusLabel(fixture: Fixture): { text: string | null; live: boolean } {
   }
 }
 
+function TBDTeam() {
+  return (
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs" title="To be determined">
+      <span
+        className="inline-block rounded-sm"
+        style={{ width: 8, height: 8, border: "1px dashed var(--foreground)" }}
+      />
+      <span className="font-medium tracking-wide">TBD</span>
+    </span>
+  );
+}
+
 function MatchCard({ entry }: { entry: BracketEntry }) {
   if (entry.kind === "placeholder") {
     const targetDate = ESTIMATED_ROUND_DATE[entry.round] ?? ESTIMATED_ROUND_DATE.Final;
@@ -62,10 +74,10 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
         aria-label="Teams to be determined"
       >
         <div className="flex items-center justify-between gap-2">
-          <TeamChip abbreviation="TBD" name="To be determined" hexColour={null} size="sm" />
+          <TBDTeam />
         </div>
         <div className="flex items-center justify-between gap-2">
-          <TeamChip abbreviation="TBD" name="To be determined" hexColour={null} size="sm" />
+          <TBDTeam />
         </div>
         <span className="inline-flex w-fit items-center gap-1.5 self-start rounded px-1 text-xs font-medium tabular-nums text-foreground/40">
           <Countdown targetDate={targetDate} />
@@ -87,11 +99,11 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
       aria-label={`${home.name} vs ${away.name}`}
     >
       <div className="flex items-center justify-between gap-2">
-        <TeamChip abbreviation={home.abbreviation} name={home.name} hexColour={home.hexColour} size="sm" />
+        <Team teamId={fixture.homeTeamId} size="sm" />
         {played && <span className="tabular-nums font-semibold">{fixture.goalsHome}</span>}
       </div>
       <div className="flex items-center justify-between gap-2">
-        <TeamChip abbreviation={away.abbreviation} name={away.name} hexColour={away.hexColour} size="sm" />
+        <Team teamId={fixture.awayTeamId} size="sm" />
         {played && <span className="tabular-nums font-semibold">{fixture.goalsAway}</span>}
       </div>
       <span

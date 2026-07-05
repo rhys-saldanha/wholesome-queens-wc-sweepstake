@@ -1,5 +1,4 @@
-import { TeamChip } from "./TeamChip";
-import { resolveTeam } from "@/lib/data/team-lookup";
+import { Team } from "./Team";
 import type { GroupStanding } from "@/lib/types";
 
 export function GroupsGrid({ groups }: { groups: GroupStanding[] }) {
@@ -28,11 +27,10 @@ export function GroupsGrid({ groups }: { groups: GroupStanding[] }) {
               </thead>
               <tbody>
                 {group.rows.map((row) => {
-                  const team = resolveTeam(row.teamId);
                   return (
                     <tr key={row.teamId}>
                       <td className="py-0.5">
-                        <TeamChip abbreviation={team.abbreviation} name={team.name} hexColour={team.hexColour} size="sm" />
+                        <Team teamId={row.teamId} size="sm" />
                       </td>
                       <td className="py-0.5 pl-2 text-right tabular-nums">{row.played}</td>
                       <td className="py-0.5 pl-2 text-right tabular-nums">{row.won}</td>

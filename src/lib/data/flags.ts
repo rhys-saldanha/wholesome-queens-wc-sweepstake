@@ -1,0 +1,58 @@
+// Lowercase flag-icons (https://github.com/lipis/flag-icons) codes, keyed by
+// team name. Most are plain ISO 3166-1 country codes; England and Scotland
+// have no country code of their own (they're part of GB), so they use
+// flag-icons' GB-subdivision codes instead.
+const FLAG_CODE_BY_TEAM_NAME: Record<string, string> = {
+  Algeria: "dz",
+  Argentina: "ar",
+  Australia: "au",
+  Austria: "at",
+  Belgium: "be",
+  "Bosnia & Herzegovina": "ba",
+  Brazil: "br",
+  Canada: "ca",
+  "Cape Verde Islands": "cv",
+  Colombia: "co",
+  "Congo DR": "cd",
+  Croatia: "hr",
+  Curaçao: "cw",
+  Czechia: "cz",
+  Ecuador: "ec",
+  Egypt: "eg",
+  England: "gb-eng",
+  France: "fr",
+  Germany: "de",
+  Ghana: "gh",
+  Haiti: "ht",
+  Iran: "ir",
+  Iraq: "iq",
+  "Ivory Coast": "ci",
+  Japan: "jp",
+  Jordan: "jo",
+  Mexico: "mx",
+  Morocco: "ma",
+  Netherlands: "nl",
+  "New Zealand": "nz",
+  Norway: "no",
+  Panama: "pa",
+  Paraguay: "py",
+  Portugal: "pt",
+  Qatar: "qa",
+  "Saudi Arabia": "sa",
+  Scotland: "gb-sct",
+  Senegal: "sn",
+  "South Africa": "za",
+  "South Korea": "kr",
+  Spain: "es",
+  Sweden: "se",
+  Switzerland: "ch",
+  Tunisia: "tn",
+  Türkiye: "tr",
+  Uruguay: "uy",
+  USA: "us",
+  Uzbekistan: "uz",
+};
+
+export function getFlagIconCode(teamName: string): string | null {
+  return FLAG_CODE_BY_TEAM_NAME[teamName] ?? null;
+}

@@ -1,4 +1,4 @@
-import { TeamChip } from "./TeamChip";
+import { Team } from "./Team";
 import { PrizeTag } from "./PrizeTag";
 import type { Leaderboard } from "@/lib/types";
 
@@ -48,12 +48,7 @@ export function LeaderboardSection({ leaderboard }: { leaderboard: Leaderboard }
                           key={t.apiFootballId}
                           className={`flex items-center justify-between gap-3 ${t.eliminated ? "opacity-40" : ""}`}
                         >
-                          <TeamChip
-                            abbreviation={t.abbreviation}
-                            name={t.name}
-                            hexColour={t.eliminated ? null : entry.hexColour}
-                            size="sm"
-                          />
+                          <Team teamId={t.apiFootballId} eliminated={t.eliminated} size="sm" />
                           <span className="text-xs text-foreground/60 tabular-nums">
                             {t.eliminated && "OUT · "}
                             {t.record.wins}W {t.record.draws}D {t.record.losses}L · {t.record.points}pt

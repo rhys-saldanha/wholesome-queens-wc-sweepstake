@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useSyncExternalStore } from "react";
 import { resolveTeam } from "@/lib/data/team-lookup";
+import { findPlayerByTeamId } from "@/lib/data/players";
 import type { Fixture } from "@/lib/types";
 
 type Score = { home: number; away: number };
@@ -86,19 +87,26 @@ export function GoalNotifications({ fixtures }: { fixtures: Fixture[] }) {
 function notifyGoal(fixture: Fixture, before: Score, after: Score) {
   const home = resolveTeam(fixture.homeTeamId);
   const away = resolveTeam(fixture.awayTeamId);
-  const scorer = after.home > before.home ? home : away;
-  const title = `⚽ Goal! ${scorer.name}`;
+  const scoringTeamId = after.home > before.home ? fixture.homeTeamId : fixture.awayTeamId;
+  const scorer = scoringTeamId === fixture.homeTeamId ? home : away;
+  const player = findPlayerByTeamId(scoringTeamId);
+
+  const title = player ? `⚽ Goal for ${player.displayName}! ${scorer.name}` : `⚽ Goal! ${scorer.name}`;
   const body = `${home.abbreviation} ${after.home}-${after.away} ${away.abbreviation}`;
+  const icon = player ? colourDotIcon(player.hexColour) : "/favicon.ico";
 
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification(title, {
-        body,
-        icon: "/favicon.ico",
-        tag: `fixture-${fixture.id}`,
-      });
+      registration.showNotification(title, { body, icon, tag: `fixture-${fixture.id}` });
     });
   } else {
-    new Notification(title, { body });
+    new Notification(title, { body, icon });
   }
+}
+
+// Notifications only render a plain icon, so the owning player's colour is
+// baked into one as a solid dot rather than shown as separate swatch UI.
+function colourDotIcon(hexColour: string): string {
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64"><circle cx="32" cy="32" r="30" fill="${hexColour}"/></svg>`;
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
 }
