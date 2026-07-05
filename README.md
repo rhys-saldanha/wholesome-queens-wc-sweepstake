@@ -1,36 +1,29 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# World Cup 2026 Sweepstake
 
-## Getting Started
+A live leaderboard, group tables, and knockout bracket for a 6-player World Cup 2026 sweepstake — no database, no real names, deployed on Netlify.
 
-First, run the development server:
+**Live site:** https://wholesome-queens-wc-sweepstake.netlify.app
+
+## How it works
+
+- 6 players each drafted 8 of the 48 World Cup teams (colour-coded, shown publicly under animal aliases).
+- 🏆 Champion (£30) and 🥈 runner-up (£20) prizes go to whoever drafted the two World Cup finalists — resolved once the Final is played.
+- 🥄 The £10 "wooden spoon" goes to whoever has the *lowest* total points (win = 2, draw = 1, loss = 0) across all matches played by their 8 teams.
+- Live data comes from [API-Football](https://www.api-football.com/), fetched server-side and revalidated every ~90 seconds.
+
+## Development
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Requires an `API_FOOTBALL_KEY` environment variable — see `.env.example`. Without it, the site falls back to a "live scores unavailable" banner instead of crashing.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Data
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Player/team assignments (colours, animal aliases, API-Football team IDs) are embedded as static data in `src/data/sweepstake.json` — this is the only "database" the app uses.
 
-## Learn More
+## Deployment
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Deployed on Netlify via the zero-config Next.js adapter, connected to this GitHub repo — every push to `main` triggers a new production build.
