@@ -57,7 +57,7 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
     const targetDate = ESTIMATED_ROUND_DATE[entry.round] ?? ESTIMATED_ROUND_DATE.Final;
     return (
       <div
-        className="bracket-match-card flex w-56 flex-col gap-1 rounded-md border-2 border-dashed border-foreground/10 bg-background px-3 py-2 text-sm"
+        className="bracket-match-card flex w-full flex-col gap-1 rounded-md border-2 border-dashed border-foreground/10 bg-background px-3 py-2 text-sm"
         role="group"
         aria-label="Teams to be determined"
       >
@@ -82,7 +82,7 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
 
   return (
     <div
-      className="bracket-match-card flex w-56 flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
+      className="bracket-match-card flex w-full flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
       role="group"
       aria-label={`${home.name} vs ${away.name}`}
     >
