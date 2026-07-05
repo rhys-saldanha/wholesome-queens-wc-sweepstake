@@ -151,35 +151,43 @@ function reorderForBracketTopology(rounds: { round: string; fixtures: Fixture[] 
   return orderedFixtures;
 }
 
+// Rough height of one match card (including its gap to the next) -- used
+// only to cap column height at roughly the current round's own size, so
+// columns with more matches (typically earlier, bigger rounds) require a
+// deliberate vertical scroll rather than dictating everyone else's height.
+const CARD_HEIGHT_ESTIMATE = 96;
+const HEADING_HEIGHT_ESTIMATE = 32;
+
 /**
- * Each round is its own independently-sized column -- height follows its
- * own match count rather than a row grid shared across all rounds. That
- * shared grid only ever existed to keep matches vertically aligned with
- * the connector lines between rounds; now that those lines are gone, there
- * is no reason for a round with fewer (or all-placeholder) matches to
- * reserve tall empty space matching a earlier, bigger round.
+ * Each round is its own independently-sized column, capped at roughly the
+ * current round's height -- that's what forces a vertical scroll to see
+ * the rest of a taller (earlier) round, rather than every column matching
+ * whichever round happens to have the most matches.
  */
 function RoundColumn({
   round,
   entries,
   isCurrent,
+  maxHeight,
 }: {
   round: string;
   entries: BracketEntry[];
   isCurrent: boolean;
+  maxHeight: number;
 }) {
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
   return (
     <div
-      className="flex w-56 flex-shrink-0 flex-col gap-3"
+      className="flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto"
       style={
         {
           scrollSnapAlign: "start",
+          maxHeight,
           ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
         } as CSSProperties
       }
     >
-      <h3 id={headingId} className="text-sm font-semibold text-foreground/70">
+      <h3 id={headingId} className="sticky top-0 bg-background text-sm font-semibold text-foreground/70">
         {round}
       </h3>
       {entries.map((entry) => (
@@ -190,6 +198,9 @@ function RoundColumn({
 }
 
 function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; currentRoundIndex: number }) {
+  const currentCount = rounds[currentRoundIndex]?.entries.length ?? 1;
+  const maxHeight = HEADING_HEIGHT_ESTIMATE + currentCount * CARD_HEIGHT_ESTIMATE;
+
   return (
     // Pure CSS, no JS: scroll-snap-type + scroll-snap-align make each round
     // a snap point, and `scroll-initial-target` (Chromium; degrades
@@ -198,7 +209,13 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
     <div className="overflow-x-auto pb-2" style={{ scrollSnapType: "x proximity" } as CSSProperties}>
       <div className="flex items-start gap-14">
         {rounds.map((r, i) => (
-          <RoundColumn key={r.round} round={r.round} entries={r.entries} isCurrent={i === currentRoundIndex} />
+          <RoundColumn
+            key={r.round}
+            round={r.round}
+            entries={r.entries}
+            isCurrent={i === currentRoundIndex}
+            maxHeight={maxHeight}
+          />
         ))}
       </div>
     </div>
