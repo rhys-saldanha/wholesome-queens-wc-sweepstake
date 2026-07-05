@@ -1,11 +1,11 @@
-import { apiFootballGet, getRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
+import { apiFootballGet, getFixturesRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
 import { FixturesResponseSchema } from "./schemas";
 import type { Fixture } from "@/lib/types";
 
 export async function getAllFixtures(): Promise<Fixture[]> {
   const raw = await apiFootballGet(
     `/fixtures?league=${LEAGUE_ID}&season=${SEASON}`,
-    getRevalidateSeconds(),
+    getFixturesRevalidateSeconds(),
   );
   const parsed = FixturesResponseSchema.parse(raw);
 

@@ -1,4 +1,4 @@
-import { apiFootballGet, getRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
+import { apiFootballGet, getStandingsRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
 import { StandingsResponseSchema } from "./schemas";
 import type { GroupStanding } from "@/lib/types";
 
@@ -13,7 +13,7 @@ function isLetteredGroup(groupName: string): boolean {
 export async function getGroupStandings(): Promise<GroupStanding[]> {
   const raw = await apiFootballGet(
     `/standings?league=${LEAGUE_ID}&season=${SEASON}`,
-    getRevalidateSeconds(),
+    getStandingsRevalidateSeconds(),
   );
   const parsed = StandingsResponseSchema.parse(raw);
 

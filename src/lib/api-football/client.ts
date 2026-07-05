@@ -32,8 +32,20 @@ export async function apiFootballGet(
   return json;
 }
 
-export function getRevalidateSeconds(): number {
+// Standings only cover group-stage tables, which are complete and static
+// once the group stage ends -- no knockout visibility at all. Long default
+// since there's nothing left to change; 1 day -> 1 call/day worst case.
+export function getStandingsRevalidateSeconds(): number {
+  const raw = process.env.STANDINGS_REVALIDATE_SECONDS;
+  const parsed = raw ? Number(raw) : NaN;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 86400;
+}
+
+// Fixtures cover both group-stage AND knockout results/live scores -- this
+// is the actual "is a match live right now" signal, so it gets the fast
+// interval. 30s -> ~2,880 calls/day worst case.
+export function getFixturesRevalidateSeconds(): number {
   const raw = process.env.FIXTURES_REVALIDATE_SECONDS;
   const parsed = raw ? Number(raw) : NaN;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 300;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
 }
