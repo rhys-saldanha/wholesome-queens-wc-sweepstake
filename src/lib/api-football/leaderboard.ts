@@ -9,6 +9,7 @@ function findFinalResult(fixtures: Fixture[]): { winnerTeamId: number; loserTeam
 
   const finished = ["FT", "AET", "PEN"].includes(final.status);
   if (!finished) return null;
+  if (final.homeTeamId == null || final.awayTeamId == null) return null;
 
   const homeGoals = final.goalsHome ?? 0;
   const awayGoals = final.goalsAway ?? 0;

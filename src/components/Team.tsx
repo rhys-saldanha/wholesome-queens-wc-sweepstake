@@ -2,15 +2,15 @@ import { resolveTeam } from "@/lib/data/team-lookup";
 import { getFlagIconCode } from "@/lib/data/flags";
 
 interface TeamProps {
-  teamId: number;
+  teamId: number | null;
   eliminated?: boolean;
   size?: "sm" | "md";
 }
 
 export function Team({ teamId, eliminated = false, size = "md" }: TeamProps) {
   const { abbreviation, name, hexColour } = resolveTeam(teamId);
-  const flagCode = getFlagIconCode(name);
-  const dotColour = eliminated ? null : hexColour;
+  const flagCode = teamId == null ? null : getFlagIconCode(name);
+  const dotColour = eliminated || teamId == null ? null : hexColour;
 
   return (
     <span

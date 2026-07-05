@@ -9,13 +9,16 @@ for (const player of PLAYER_LIST) {
 }
 
 export interface ResolvedTeam {
-  apiFootballId: number;
+  apiFootballId: number | null;
   abbreviation: string;
   name: string;
   hexColour: string | null;
 }
 
-export function resolveTeam(teamId: number): ResolvedTeam {
+export function resolveTeam(teamId: number | null): ResolvedTeam {
+  if (teamId == null) {
+    return { apiFootballId: null, abbreviation: "TBD", name: "TBD", hexColour: null };
+  }
   const team = TEAM_BY_ID.get(teamId);
   const player = findPlayerByTeamId(teamId);
   return {

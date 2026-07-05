@@ -21,12 +21,13 @@ export function computeEliminatedTeamIds(
 
   const teamsInKnockouts = new Set<number>();
   for (const f of knockoutFixtures) {
-    teamsInKnockouts.add(f.homeTeamId);
-    teamsInKnockouts.add(f.awayTeamId);
+    if (f.homeTeamId != null) teamsInKnockouts.add(f.homeTeamId);
+    if (f.awayTeamId != null) teamsInKnockouts.add(f.awayTeamId);
   }
 
   for (const f of knockoutFixtures) {
     if (!FINISHED.includes(f.status)) continue;
+    if (f.homeTeamId == null || f.awayTeamId == null) continue;
 
     const homeGoals = f.goalsHome ?? 0;
     const awayGoals = f.goalsAway ?? 0;

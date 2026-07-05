@@ -35,11 +35,13 @@ export type FixtureStatus =
 
 export interface Fixture {
   id: number;
-  date: string;
+  /** Null for a knockout slot the API hasn't created a fixture for yet -- its kickoff isn't known. */
+  date: string | null;
   round: string;
   status: FixtureStatus;
-  homeTeamId: number;
-  awayTeamId: number;
+  /** Null when that side of a knockout slot hasn't been decided yet. */
+  homeTeamId: number | null;
+  awayTeamId: number | null;
   goalsHome: number | null;
   goalsAway: number | null;
   /** Winner as reported by the API once the shootout (if any) is decided. */

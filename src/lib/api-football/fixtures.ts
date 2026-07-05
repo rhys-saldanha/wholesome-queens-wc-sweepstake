@@ -1,4 +1,6 @@
 import { apiFootballGet, getFixturesRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
+import { padKnockoutFixtures } from "./knockout-bracket";
+import { KNOCKOUT_ROUND_SIZES } from "@/lib/rounds";
 import { FixturesResponseSchema } from "./schemas";
 import type { Fixture } from "@/lib/types";
 
@@ -9,7 +11,7 @@ export async function getAllFixtures(): Promise<Fixture[]> {
   );
   const parsed = FixturesResponseSchema.parse(raw);
 
-  return parsed.response.map((item): Fixture => {
+  const fixtures = parsed.response.map((item): Fixture => {
     const { home, away } = item.teams;
     let penaltyWinnerTeamId: number | null = null;
     if (home.winner === true) penaltyWinnerTeamId = home.id;
@@ -27,4 +29,10 @@ export async function getAllFixtures(): Promise<Fixture[]> {
       penaltyWinnerTeamId,
     };
   });
+
+  const knockoutRoundNames = Object.keys(KNOCKOUT_ROUND_SIZES);
+  const otherFixtures = fixtures.filter((f) => !knockoutRoundNames.includes(f.round));
+  const knockoutFixtures = fixtures.filter((f) => knockoutRoundNames.includes(f.round));
+
+  return [...otherFixtures, ...padKnockoutFixtures(knockoutFixtures)];
 }

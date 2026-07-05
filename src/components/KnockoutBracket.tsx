@@ -2,21 +2,10 @@ import type { CSSProperties } from "react";
 import { Team } from "./Team";
 import { Countdown } from "./Countdown";
 import { resolveTeam } from "@/lib/data/team-lookup";
-import { KNOCKOUT_ROUND_ORDER, KNOCKOUT_ROUND_SIZES } from "@/lib/rounds";
+import { KNOCKOUT_ROUND_ORDER } from "@/lib/rounds";
 import type { Fixture } from "@/lib/types";
 
 const FINISHED: Fixture["status"][] = ["FT", "AET", "PEN"];
-
-// The API only creates a fixture once both teams are actually determined,
-// so rounds/matches further out than that don't exist server-side yet.
-// These are the publicly published World Cup 2026 knockout dates, used only
-// as a countdown target for placeholder ("TBD vs TBD") slots -- cosmetic,
-// not used anywhere in scoring.
-const ESTIMATED_ROUND_DATE: Record<string, string> = {
-  "Quarter-finals": "2026-07-10T18:00:00Z",
-  "Semi-finals": "2026-07-15T18:00:00Z",
-  Final: "2026-07-19T18:00:00Z",
-};
 
 // One fixed CSS class per round (r32/r16/qf/sf/final), each with its own
 // literal, hardcoded `anchor-name` in globals.css -- no dynamic anchor
@@ -28,10 +17,6 @@ const ROUND_SLUG: Record<string, string> = {
   "Semi-finals": "sf",
   Final: "final",
 };
-
-type BracketEntry =
-  | { kind: "real"; id: number; fixture: Fixture }
-  | { kind: "placeholder"; id: string; round: string };
 
 function statusLabel(fixture: Fixture): { text: string | null; live: boolean } {
   switch (fixture.status) {
@@ -52,49 +37,20 @@ function statusLabel(fixture: Fixture): { text: string | null; live: boolean } {
   }
 }
 
-function TBDTeam() {
-  return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap text-xs" title="To be determined">
-      <span
-        className="inline-block rounded-sm"
-        style={{ width: 8, height: 8, border: "1px dashed var(--foreground)" }}
-      />
-      <span className="font-medium tracking-wide">TBD</span>
-    </span>
-  );
-}
-
-function MatchCard({ entry }: { entry: BracketEntry }) {
-  if (entry.kind === "placeholder") {
-    const targetDate = ESTIMATED_ROUND_DATE[entry.round] ?? ESTIMATED_ROUND_DATE.Final;
-    return (
-      <div
-        className="bracket-match-card flex w-full flex-col gap-1 rounded-md border-2 border-dashed border-foreground/10 bg-background px-3 py-2 text-sm"
-        role="group"
-        aria-label="Teams to be determined"
-      >
-        <div className="flex items-center justify-between gap-2">
-          <TBDTeam />
-        </div>
-        <div className="flex items-center justify-between gap-2">
-          <TBDTeam />
-        </div>
-        <span className="inline-flex w-fit items-center gap-1.5 self-start rounded px-1 text-xs font-medium tabular-nums text-foreground/40">
-          <Countdown targetDate={targetDate} />
-        </span>
-      </div>
-    );
-  }
-
-  const { fixture } = entry;
+function MatchCard({ fixture }: { fixture: Fixture }) {
   const home = resolveTeam(fixture.homeTeamId);
   const away = resolveTeam(fixture.awayTeamId);
   const { text, live } = statusLabel(fixture);
   const played = fixture.goalsHome != null && fixture.goalsAway != null;
+  // Synthesized slots (the API hasn't created this fixture yet) have no
+  // real kickoff time -- nothing to count down to, so the trailer is blank.
+  const isSynthesized = fixture.date == null;
 
   return (
     <div
-      className="bracket-match-card flex w-full flex-col gap-1 rounded-md border-2 border-foreground/10 bg-background px-3 py-2 text-sm"
+      className={`bracket-match-card flex w-full flex-col gap-1 rounded-md border-2 bg-background px-3 py-2 text-sm ${
+        isSynthesized ? "border-dashed border-foreground/10" : "border-foreground/10"
+      }`}
       role="group"
       aria-label={`${home.name} vs ${away.name}`}
     >
@@ -106,72 +62,28 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
         <Team teamId={fixture.awayTeamId} size="sm" />
         {played && <span className="tabular-nums font-semibold">{fixture.goalsAway}</span>}
       </div>
-      <span
-        className={`inline-flex w-fit items-center gap-1.5 self-start rounded px-1 text-xs font-medium tabular-nums ${
-          live ? "bg-red-500/15 text-red-500" : "text-foreground/40"
-        }`}
-      >
-        {live && (
-          <span className="relative flex h-2 w-2">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
-          </span>
-        )}
-        {fixture.status === "NS" ? <Countdown targetDate={fixture.date} /> : text}
-      </span>
+      {!isSynthesized && (
+        <span
+          className={`inline-flex w-fit items-center gap-1.5 self-start rounded px-1 text-xs font-medium tabular-nums ${
+            live ? "bg-red-500/15 text-red-500" : "text-foreground/40"
+          }`}
+        >
+          {live && (
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-500 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-red-500" />
+            </span>
+          )}
+          {fixture.status === "NS" ? <Countdown targetDate={fixture.date as string} /> : text}
+        </span>
+      )}
     </div>
   );
 }
 
 interface RoundInfo {
   round: string;
-  entries: BracketEntry[];
-}
-
-/**
- * Chronological (kickoff-date) order has no relation to bracket topology --
- * two round-of-32 winners that happen to feed the same round-of-16 match
- * are not necessarily adjacent in the schedule. This reorders each round's
- * real fixtures, working backwards from the last round, so that index i and
- * i+1 within a round always share the same parent match in the next round.
- * Only operates on real (API-provided) fixtures -- padding with TBD
- * placeholders up to each round's expected size happens afterwards.
- */
-function reorderForBracketTopology(rounds: { round: string; fixtures: Fixture[] }[]): Fixture[][] {
-  if (rounds.length === 0) return [];
-
-  const orderedFixtures: Fixture[][] = new Array(rounds.length);
-  orderedFixtures[rounds.length - 1] = rounds[rounds.length - 1].fixtures.slice();
-
-  for (let k = rounds.length - 2; k >= 0; k--) {
-    const childOrder = orderedFixtures[k + 1];
-    const prevFixtures = rounds[k].fixtures;
-    const usedIds = new Set<number>();
-    const newOrder: Fixture[] = [];
-
-    const feederFor = (teamId: number) =>
-      prevFixtures.find(
-        (pf) => !usedIds.has(pf.id) && (pf.homeTeamId === teamId || pf.awayTeamId === teamId),
-      );
-
-    for (const child of childOrder) {
-      for (const teamId of [child.homeTeamId, child.awayTeamId]) {
-        const feeder = feederFor(teamId);
-        if (feeder) {
-          newOrder.push(feeder);
-          usedIds.add(feeder.id);
-        }
-      }
-    }
-    // Matches with no known parent yet (future rounds not fully populated)
-    // keep their original relative order, appended at the end.
-    for (const pf of prevFixtures) {
-      if (!usedIds.has(pf.id)) newOrder.push(pf);
-    }
-    orderedFixtures[k] = newOrder;
-  }
-
-  return orderedFixtures;
+  fixtures: Fixture[];
 }
 
 // Rough height of one match card (including its gap to the next) -- used
@@ -189,12 +101,12 @@ const HEADING_HEIGHT_ESTIMATE = 32;
  */
 function RoundColumn({
   round,
-  entries,
+  fixtures,
   isCurrent,
   maxHeight,
 }: {
   round: string;
-  entries: BracketEntry[];
+  fixtures: Fixture[];
   isCurrent: boolean;
   maxHeight: number;
 }) {
@@ -214,15 +126,15 @@ function RoundColumn({
       <h3 id={headingId} className="sticky top-0 bg-background text-sm font-semibold text-foreground/70">
         {round}
       </h3>
-      {entries.map((entry) => (
-        <MatchCard key={entry.id} entry={entry} />
+      {fixtures.map((fixture) => (
+        <MatchCard key={fixture.id} fixture={fixture} />
       ))}
     </div>
   );
 }
 
 function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; currentRoundIndex: number }) {
-  const currentCount = rounds[currentRoundIndex]?.entries.length ?? 1;
+  const currentCount = rounds[currentRoundIndex]?.fixtures.length ?? 1;
   const maxHeight = HEADING_HEIGHT_ESTIMATE + currentCount * CARD_HEIGHT_ESTIMATE;
 
   return (
@@ -239,7 +151,7 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
           <RoundColumn
             key={r.round}
             round={r.round}
-            entries={r.entries}
+            fixtures={r.fixtures}
             isCurrent={i === currentRoundIndex}
             maxHeight={maxHeight}
           />
@@ -250,51 +162,32 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
 }
 
 export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
-  const knockoutFixtures = fixtures.filter((f) =>
-    (KNOCKOUT_ROUND_ORDER as readonly string[]).includes(f.round),
-  );
-
+  // Every knockout round (real fixtures plus API-Football hasn't-created-it-
+  // yet slots) arrives already padded to its bracket-defined size (16/8/4/2/
+  // 1) and in bracket topology order -- see padKnockoutFixtures in
+  // lib/api-football/knockout-bracket.ts, run once at fetch time.
   const byRound = new Map<string, Fixture[]>();
-  for (const fixture of knockoutFixtures) {
+  for (const fixture of fixtures) {
+    if (!(KNOCKOUT_ROUND_ORDER as readonly string[]).includes(fixture.round)) continue;
     const list = byRound.get(fixture.round) ?? [];
     list.push(fixture);
     byRound.set(fixture.round, list);
   }
-  for (const list of byRound.values()) {
-    list.sort((a, b) => a.date.localeCompare(b.date));
-  }
 
-  // Always render every round through to the Final, in bracket-defined
-  // sizes (16/8/4/2/1) -- rounds/slots the API hasn't populated yet (no
-  // both-teams-determined fixture exists server-side) are padded with
-  // TBD placeholders, so the overall bracket shape is always visible.
-  const roundNames = Object.keys(KNOCKOUT_ROUND_SIZES);
-  const reordered = reorderForBracketTopology(
-    roundNames.map((round) => ({ round, fixtures: byRound.get(round) ?? [] })),
-  );
-
-  const fullRounds: RoundInfo[] = roundNames.map((round, index) => {
-    const realFixtures = reordered[index];
-    const expectedSize = KNOCKOUT_ROUND_SIZES[round];
-    const entries: BracketEntry[] = realFixtures.map((fixture) => ({
-      kind: "real" as const,
-      id: fixture.id,
-      fixture,
-    }));
-    for (let i = entries.length; i < expectedSize; i++) {
-      entries.push({ kind: "placeholder" as const, id: `${round}-${i}`, round });
-    }
-    return { round, entries };
-  });
+  const roundNames = (KNOCKOUT_ROUND_ORDER as readonly string[]).filter((r) => r !== "3rd Place Final");
+  const fullRounds: RoundInfo[] = roundNames.map((round) => ({
+    round,
+    fixtures: byRound.get(round) ?? [],
+  }));
 
   const thirdPlace = byRound.get("3rd Place Final")?.[0];
 
   // The "current" round -- the earliest round that still has an
-  // unfinished/placeholder match -- is what the bracket auto-scrolls to
+  // unfinished/not-yet-created match -- is what the bracket auto-scrolls to
   // on load, since it's the last fully-completed round plus whatever's
   // happening now.
   const activeIndex = fullRounds.findIndex((r) =>
-    r.entries.some((e) => e.kind === "placeholder" || !FINISHED.includes(e.fixture.status)),
+    r.fixtures.some((f) => f.date == null || !FINISHED.includes(f.status)),
   );
   const currentRoundIndex = activeIndex === -1 ? fullRounds.length - 1 : activeIndex;
 
@@ -307,7 +200,7 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
       {thirdPlace && (
         <div className="flex flex-col gap-2">
           <h3 className="text-sm font-semibold text-foreground/70">3rd Place Play-off</h3>
-          <MatchCard entry={{ kind: "real", id: thirdPlace.id, fixture: thirdPlace }} />
+          <MatchCard fixture={thirdPlace} />
         </div>
       )}
     </section>

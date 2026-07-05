@@ -14,8 +14,8 @@ for (const player of PLAYER_LIST) {
   }
 }
 
-export function findPlayerByTeamId(teamId: number): Player | undefined {
-  return TEAM_ID_TO_PLAYER.get(teamId);
+export function findPlayerByTeamId(teamId: number | null): Player | undefined {
+  return teamId == null ? undefined : TEAM_ID_TO_PLAYER.get(teamId);
 }
 
 // Fails fast at startup if the data file has a duplicate/missing team.
