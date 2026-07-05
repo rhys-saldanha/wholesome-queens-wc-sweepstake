@@ -6,9 +6,6 @@ import { KNOCKOUT_ROUND_ORDER, KNOCKOUT_ROUND_SIZES } from "@/lib/rounds";
 import type { Fixture } from "@/lib/types";
 
 const FINISHED: Fixture["status"][] = ["FT", "AET", "PEN"];
-const MIN_ROW_HEIGHT = 88;
-const COLUMN_WIDTH = 224;
-const COLUMN_GAP = 56;
 
 // The API only creates a fixture once both teams are actually determined,
 // so rounds/matches further out than that don't exist server-side yet.
@@ -105,7 +102,6 @@ function MatchCard({ entry }: { entry: BracketEntry }) {
 
 interface RoundInfo {
   round: string;
-  originalIndex: number;
   entries: BracketEntry[];
 }
 
@@ -155,72 +151,55 @@ function reorderForBracketTopology(rounds: { round: string; fixtures: Fixture[] 
   return orderedFixtures;
 }
 
-function BracketGrid({
-  rounds,
-  baseRows,
-  currentRoundIndex,
+/**
+ * Each round is its own independently-sized column -- height follows its
+ * own match count rather than a row grid shared across all rounds. That
+ * shared grid only ever existed to keep matches vertically aligned with
+ * the connector lines between rounds; now that those lines are gone, there
+ * is no reason for a round with fewer (or all-placeholder) matches to
+ * reserve tall empty space matching a earlier, bigger round.
+ */
+function RoundColumn({
+  round,
+  entries,
+  isCurrent,
 }: {
-  rounds: RoundInfo[];
-  baseRows: number;
-  currentRoundIndex: number;
+  round: string;
+  entries: BracketEntry[];
+  isCurrent: boolean;
 }) {
-  // Row 1 is a dedicated header row (rather than overlapping row 1 of the
-  // matches via a negative offset) -- an `overflow-x-auto` container also
-  // forces `overflow-y` to clip, so anything positioned above the grid's
-  // own top edge would otherwise get cut off instead of scrolling into view.
-  const HEADER_ROW_HEIGHT = 28;
+  const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
+  return (
+    <div
+      className="flex w-56 flex-shrink-0 flex-col gap-3"
+      style={
+        {
+          scrollSnapAlign: "start",
+          ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
+        } as CSSProperties
+      }
+    >
+      <h3 id={headingId} className="text-sm font-semibold text-foreground/70">
+        {round}
+      </h3>
+      {entries.map((entry) => (
+        <MatchCard key={entry.id} entry={entry} />
+      ))}
+    </div>
+  );
+}
 
+function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; currentRoundIndex: number }) {
   return (
     // Pure CSS, no JS: scroll-snap-type + scroll-snap-align make each round
     // a snap point, and `scroll-initial-target` (Chromium; degrades
     // gracefully to just "starts at the left" elsewhere) declares which
     // snap point the container should be scrolled to on first render.
     <div className="overflow-x-auto pb-2" style={{ scrollSnapType: "x proximity" } as CSSProperties}>
-      <div
-        className="grid"
-        style={
-          {
-            gridTemplateColumns: `repeat(${rounds.length}, ${COLUMN_WIDTH}px)`,
-            gridTemplateRows: `${HEADER_ROW_HEIGHT}px repeat(${baseRows}, minmax(${MIN_ROW_HEIGHT}px, 1fr))`,
-            height: HEADER_ROW_HEIGHT + baseRows * MIN_ROW_HEIGHT,
-            columnGap: COLUMN_GAP,
-          } as CSSProperties
-        }
-      >
-        {rounds.map(({ round }, visibleIdx) => (
-          <h3
-            key={round}
-            id={`round-${round.replace(/\s+/g, "-").toLowerCase()}`}
-            className="self-center text-sm font-semibold text-foreground/70"
-            style={
-              {
-                gridColumn: visibleIdx + 1,
-                gridRow: 1,
-                scrollSnapAlign: "start",
-                ...(visibleIdx === currentRoundIndex ? { scrollInitialTarget: "nearest" } : {}),
-              } as CSSProperties
-            }
-          >
-            {round}
-          </h3>
+      <div className="flex items-start gap-14">
+        {rounds.map((r, i) => (
+          <RoundColumn key={r.round} round={r.round} entries={r.entries} isCurrent={i === currentRoundIndex} />
         ))}
-        {rounds.map(({ round, originalIndex, entries }, visibleIdx) => {
-          const span = 2 ** originalIndex;
-          const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
-          return entries.map((entry, i) => (
-            <div
-              key={entry.id}
-              className="bracket-slot"
-              style={{
-                gridColumn: visibleIdx + 1,
-                gridRow: `${i * span + 2} / span ${span}`,
-              }}
-              aria-labelledby={headingId}
-            >
-              <MatchCard entry={entry} />
-            </div>
-          ));
-        })}
       </div>
     </div>
   );
@@ -250,8 +229,8 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
     roundNames.map((round) => ({ round, fixtures: byRound.get(round) ?? [] })),
   );
 
-  const fullRounds: RoundInfo[] = roundNames.map((round, originalIndex) => {
-    const realFixtures = reordered[originalIndex];
+  const fullRounds: RoundInfo[] = roundNames.map((round, index) => {
+    const realFixtures = reordered[index];
     const expectedSize = KNOCKOUT_ROUND_SIZES[round];
     const entries: BracketEntry[] = realFixtures.map((fixture) => ({
       kind: "real" as const,
@@ -261,7 +240,7 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
     for (let i = entries.length; i < expectedSize; i++) {
       entries.push({ kind: "placeholder" as const, id: `${round}-${i}`, round });
     }
-    return { round, originalIndex, entries };
+    return { round, entries };
   });
 
   const thirdPlace = byRound.get("3rd Place Final")?.[0];
@@ -275,13 +254,11 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
   );
   const currentRoundIndex = activeIndex === -1 ? fullRounds.length - 1 : activeIndex;
 
-  const baseRows = KNOCKOUT_ROUND_SIZES["Round of 32"];
-
   return (
     <section className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Knockout stage</h2>
 
-      <BracketGrid rounds={fullRounds} baseRows={baseRows} currentRoundIndex={currentRoundIndex} />
+      <BracketGrid rounds={fullRounds} currentRoundIndex={currentRoundIndex} />
 
       {thirdPlace && (
         <div className="flex flex-col gap-2">
