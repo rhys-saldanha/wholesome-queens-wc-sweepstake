@@ -1,6 +1,3 @@
-"use client";
-
-import { useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { TeamChip } from "./TeamChip";
 import { Countdown } from "./Countdown";
@@ -158,7 +155,15 @@ function reorderForBracketTopology(rounds: { round: string; fixtures: Fixture[] 
   return orderedFixtures;
 }
 
-function BracketGrid({ rounds, baseRows }: { rounds: RoundInfo[]; baseRows: number }) {
+function BracketGrid({
+  rounds,
+  baseRows,
+  currentRoundIndex,
+}: {
+  rounds: RoundInfo[];
+  baseRows: number;
+  currentRoundIndex: number;
+}) {
   // Row 1 is a dedicated header row (rather than overlapping row 1 of the
   // matches via a negative offset) -- an `overflow-x-auto` container also
   // forces `overflow-y` to clip, so anything positioned above the grid's
@@ -166,7 +171,11 @@ function BracketGrid({ rounds, baseRows }: { rounds: RoundInfo[]; baseRows: numb
   const HEADER_ROW_HEIGHT = 28;
 
   return (
-    <div className="overflow-x-auto pb-2">
+    // Pure CSS, no JS: scroll-snap-type + scroll-snap-align make each round
+    // a snap point, and `scroll-initial-target` (Chromium; degrades
+    // gracefully to just "starts at the left" elsewhere) declares which
+    // snap point the container should be scrolled to on first render.
+    <div className="overflow-x-auto pb-2" style={{ scrollSnapType: "x proximity" } as CSSProperties}>
       <div
         className="grid"
         style={
@@ -183,7 +192,14 @@ function BracketGrid({ rounds, baseRows }: { rounds: RoundInfo[]; baseRows: numb
             key={round}
             id={`round-${round.replace(/\s+/g, "-").toLowerCase()}`}
             className="self-center text-sm font-semibold text-foreground/70"
-            style={{ gridColumn: visibleIdx + 1, gridRow: 1 }}
+            style={
+              {
+                gridColumn: visibleIdx + 1,
+                gridRow: 1,
+                scrollSnapAlign: "start",
+                ...(visibleIdx === currentRoundIndex ? { scrollInitialTarget: "nearest" } : {}),
+              } as CSSProperties
+            }
           >
             {round}
           </h3>
@@ -211,84 +227,61 @@ function BracketGrid({ rounds, baseRows }: { rounds: RoundInfo[]; baseRows: numb
 }
 
 export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
-  const [view, setView] = useState<"recent" | "full">("recent");
+  const knockoutFixtures = fixtures.filter((f) =>
+    (KNOCKOUT_ROUND_ORDER as readonly string[]).includes(f.round),
+  );
 
-  const { fullRounds, thirdPlace, recentStartIndex } = useMemo(() => {
-    const knockoutFixtures = fixtures.filter((f) =>
-      (KNOCKOUT_ROUND_ORDER as readonly string[]).includes(f.round),
-    );
+  const byRound = new Map<string, Fixture[]>();
+  for (const fixture of knockoutFixtures) {
+    const list = byRound.get(fixture.round) ?? [];
+    list.push(fixture);
+    byRound.set(fixture.round, list);
+  }
+  for (const list of byRound.values()) {
+    list.sort((a, b) => a.date.localeCompare(b.date));
+  }
 
-    const byRound = new Map<string, Fixture[]>();
-    for (const fixture of knockoutFixtures) {
-      const list = byRound.get(fixture.round) ?? [];
-      list.push(fixture);
-      byRound.set(fixture.round, list);
+  // Always render every round through to the Final, in bracket-defined
+  // sizes (16/8/4/2/1) -- rounds/slots the API hasn't populated yet (no
+  // both-teams-determined fixture exists server-side) are padded with
+  // TBD placeholders, so the overall bracket shape is always visible.
+  const roundNames = Object.keys(KNOCKOUT_ROUND_SIZES);
+  const reordered = reorderForBracketTopology(
+    roundNames.map((round) => ({ round, fixtures: byRound.get(round) ?? [] })),
+  );
+
+  const fullRounds: RoundInfo[] = roundNames.map((round, originalIndex) => {
+    const realFixtures = reordered[originalIndex];
+    const expectedSize = KNOCKOUT_ROUND_SIZES[round];
+    const entries: BracketEntry[] = realFixtures.map((fixture) => ({
+      kind: "real" as const,
+      id: fixture.id,
+      fixture,
+    }));
+    for (let i = entries.length; i < expectedSize; i++) {
+      entries.push({ kind: "placeholder" as const, id: `${round}-${i}`, round });
     }
-    for (const list of byRound.values()) {
-      list.sort((a, b) => a.date.localeCompare(b.date));
-    }
+    return { round, originalIndex, entries };
+  });
 
-    // Always render every round through to the Final, in bracket-defined
-    // sizes (16/8/4/2/1) -- rounds/slots the API hasn't populated yet (no
-    // both-teams-determined fixture exists server-side) are padded with
-    // TBD placeholders, so the overall bracket shape is always visible.
-    const roundNames = Object.keys(KNOCKOUT_ROUND_SIZES);
-    const reordered = reorderForBracketTopology(
-      roundNames.map((round) => ({ round, fixtures: byRound.get(round) ?? [] })),
-    );
+  const thirdPlace = byRound.get("3rd Place Final")?.[0];
 
-    const fullRounds: RoundInfo[] = roundNames.map((round, originalIndex) => {
-      const realFixtures = reordered[originalIndex];
-      const expectedSize = KNOCKOUT_ROUND_SIZES[round];
-      const entries: BracketEntry[] = realFixtures.map((fixture) => ({
-        kind: "real" as const,
-        id: fixture.id,
-        fixture,
-      }));
-      for (let i = entries.length; i < expectedSize; i++) {
-        entries.push({ kind: "placeholder" as const, id: `${round}-${i}`, round });
-      }
-      return { round, originalIndex, entries };
-    });
-
-    const thirdPlace = byRound.get("3rd Place Final")?.[0];
-
-    // "Recent" trims off already-finished rounds, starting from whichever
-    // round is currently active -- the earliest round that still has an
-    // unfinished/placeholder match -- through to the end (Final included).
-    const activeIndex = fullRounds.findIndex((r) =>
-      r.entries.some((e) => e.kind === "placeholder" || !FINISHED.includes(e.fixture.status)),
-    );
-    const recentStartIndex = activeIndex === -1 ? fullRounds.length - 1 : activeIndex;
-
-    return { fullRounds, thirdPlace, recentStartIndex };
-  }, [fixtures]);
+  // The "current" round -- the earliest round that still has an
+  // unfinished/placeholder match -- is what the bracket auto-scrolls to
+  // on load, since it's the last fully-completed round plus whatever's
+  // happening now.
+  const activeIndex = fullRounds.findIndex((r) =>
+    r.entries.some((e) => e.kind === "placeholder" || !FINISHED.includes(e.fixture.status)),
+  );
+  const currentRoundIndex = activeIndex === -1 ? fullRounds.length - 1 : activeIndex;
 
   const baseRows = KNOCKOUT_ROUND_SIZES["Round of 32"];
-  const visibleRounds = view === "full" ? fullRounds : fullRounds.slice(recentStartIndex);
 
   return (
     <section className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="text-lg font-semibold">Knockout stage</h2>
-        <div className="inline-flex rounded-md border border-foreground/20 p-0.5 text-xs font-medium">
-          {(["recent", "full"] as const).map((mode) => (
-            <button
-              key={mode}
-              type="button"
-              onClick={() => setView(mode)}
-              aria-pressed={view === mode}
-              className={`rounded px-2.5 py-1 capitalize ${
-                view === mode ? "bg-foreground/10" : "text-foreground/50 hover:text-foreground"
-              }`}
-            >
-              {mode}
-            </button>
-          ))}
-        </div>
-      </div>
+      <h2 className="text-lg font-semibold">Knockout stage</h2>
 
-      <BracketGrid rounds={visibleRounds} baseRows={baseRows} />
+      <BracketGrid rounds={fullRounds} baseRows={baseRows} currentRoundIndex={currentRoundIndex} />
 
       {thirdPlace && (
         <div className="flex flex-col gap-2">
