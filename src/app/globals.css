@@ -51,35 +51,106 @@ body {
 }
 
 /*
- * Edge-fade scroll indicators using the classic dual-background-layer
- * trick (no JS, no experimental CSS): a "cover" gradient that scrolls WITH
- * the content (background-attachment: local) sits exactly over a "shadow"
- * gradient that stays fixed to the container's edge (background-attachment:
- * scroll) -- when scrolled all the way to that edge, the cover hides the
- * shadow completely; scrolling away reveals it. This is why the shadow
- * automatically appears/disappears based on real scroll position with no
- * script at all, using only long-standing, well-supported CSS.
- *
- * (A native ::scroll-button()/anchor-positioning version was tried here
- * and reverted -- clicking those buttons crashed the browser tab, which
- * rules them out for a public site regardless of how they look.)
+ * Native scroll-button icons via CSS Anchor Positioning, with fully
+ * literal/hardcoded anchor-name + position-anchor pairs (no dynamic names,
+ * no var() indirection) and pointer-events: none so they can't receive
+ * clicks. Explicitly requested despite two earlier crash reports with
+ * variants of this same feature -- see git history for that context.
  */
 .bracket-scroll-x {
-  background:
-    linear-gradient(to right, var(--background) 50%, transparent) left / 32px 100% local no-repeat,
-    linear-gradient(to left, var(--background) 50%, transparent) right / 32px 100% local no-repeat,
-    radial-gradient(farthest-side at left, color-mix(in srgb, var(--foreground) 25%, transparent), transparent)
-      left / 16px 100% scroll no-repeat,
-    radial-gradient(farthest-side at right, color-mix(in srgb, var(--foreground) 25%, transparent), transparent)
-      right / 16px 100% scroll no-repeat;
+  anchor-name: --h-scroll;
+}
+.bracket-scroll-y-r32 {
+  anchor-name: --v-scroll-r32;
+}
+.bracket-scroll-y-r16 {
+  anchor-name: --v-scroll-r16;
+}
+.bracket-scroll-y-qf {
+  anchor-name: --v-scroll-qf;
+}
+.bracket-scroll-y-sf {
+  anchor-name: --v-scroll-sf;
+}
+.bracket-scroll-y-final {
+  anchor-name: --v-scroll-final;
 }
 
-.bracket-scroll-y {
-  background:
-    linear-gradient(to bottom, var(--background) 50%, transparent) top / 100% 24px local no-repeat,
-    linear-gradient(to top, var(--background) 50%, transparent) bottom / 100% 24px local no-repeat,
-    radial-gradient(farthest-side at top, color-mix(in srgb, var(--foreground) 25%, transparent), transparent)
-      top / 100% 12px scroll no-repeat,
-    radial-gradient(farthest-side at bottom, color-mix(in srgb, var(--foreground) 25%, transparent), transparent)
-      bottom / 100% 12px scroll no-repeat;
+@supports (anchor-name: --foo) and (position-anchor: --foo) {
+  .bracket-scroll-x::scroll-button(left),
+  .bracket-scroll-x::scroll-button(right),
+  .bracket-scroll-y::scroll-button(up),
+  .bracket-scroll-y::scroll-button(down) {
+    position: absolute;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 9999px;
+    border: 1px solid var(--foreground);
+    opacity: 0.7;
+    background: var(--background);
+    color: var(--foreground);
+    font-size: 0.75rem;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .bracket-scroll-x::scroll-button(left):disabled,
+  .bracket-scroll-x::scroll-button(right):disabled,
+  .bracket-scroll-y::scroll-button(up):disabled,
+  .bracket-scroll-y::scroll-button(down):disabled {
+    display: none;
+  }
+
+  .bracket-scroll-x::scroll-button(left) {
+    content: "←" / "";
+    position-anchor: --h-scroll;
+    left: anchor(left);
+    top: anchor(center);
+    transform: translate(4px, -50%);
+  }
+  .bracket-scroll-x::scroll-button(right) {
+    content: "→" / "";
+    position-anchor: --h-scroll;
+    right: anchor(right);
+    top: anchor(center);
+    transform: translate(-4px, -50%);
+  }
+
+  .bracket-scroll-y-r32::scroll-button(up),
+  .bracket-scroll-y-r32::scroll-button(down) {
+    position-anchor: --v-scroll-r32;
+  }
+  .bracket-scroll-y-r16::scroll-button(up),
+  .bracket-scroll-y-r16::scroll-button(down) {
+    position-anchor: --v-scroll-r16;
+  }
+  .bracket-scroll-y-qf::scroll-button(up),
+  .bracket-scroll-y-qf::scroll-button(down) {
+    position-anchor: --v-scroll-qf;
+  }
+  .bracket-scroll-y-sf::scroll-button(up),
+  .bracket-scroll-y-sf::scroll-button(down) {
+    position-anchor: --v-scroll-sf;
+  }
+  .bracket-scroll-y-final::scroll-button(up),
+  .bracket-scroll-y-final::scroll-button(down) {
+    position-anchor: --v-scroll-final;
+  }
+
+  .bracket-scroll-y::scroll-button(up) {
+    content: "↑" / "";
+    top: anchor(top);
+    left: anchor(center);
+    transform: translate(-50%, 4px);
+  }
+  .bracket-scroll-y::scroll-button(down) {
+    content: "↓" / "";
+    bottom: anchor(bottom);
+    left: anchor(center);
+    transform: translate(-50%, -4px);
+  }
 }

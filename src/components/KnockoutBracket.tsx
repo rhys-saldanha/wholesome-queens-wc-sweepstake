@@ -18,6 +18,17 @@ const ESTIMATED_ROUND_DATE: Record<string, string> = {
   Final: "2026-07-19T18:00:00Z",
 };
 
+// One fixed CSS class per round (r32/r16/qf/sf/final), each with its own
+// literal, hardcoded `anchor-name` in globals.css -- no dynamic anchor
+// names, no var() indirection for position-anchor.
+const ROUND_SLUG: Record<string, string> = {
+  "Round of 32": "r32",
+  "Round of 16": "r16",
+  "Quarter-finals": "qf",
+  "Semi-finals": "sf",
+  Final: "final",
+};
+
 type BracketEntry =
   | { kind: "real"; id: number; fixture: Fixture }
   | { kind: "placeholder"; id: string; round: string };
@@ -176,9 +187,10 @@ function RoundColumn({
   maxHeight: number;
 }) {
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
+  const slug = ROUND_SLUG[round];
   return (
     <div
-      className="bracket-scroll-y flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto"
+      className={`bracket-scroll-y bracket-scroll-y-${slug} flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto`}
       style={
         {
           scrollSnapAlign: "start",
