@@ -1,0 +1,286 @@
+{
+  "players": [
+    {
+      "colour": "green",
+      "displayName": "Green Gazelle",
+      "hexColour": "#22c55e",
+      "teams": [
+        {
+          "apiFootballId": 6,
+          "abbreviation": "BRA",
+          "name": "Brazil"
+        },
+        {
+          "apiFootballId": 3,
+          "abbreviation": "CRO",
+          "name": "Croatia"
+        },
+        {
+          "apiFootballId": 2384,
+          "abbreviation": "USA",
+          "name": "USA"
+        },
+        {
+          "apiFootballId": 2382,
+          "abbreviation": "ECU",
+          "name": "Ecuador"
+        },
+        {
+          "apiFootballId": 1501,
+          "abbreviation": "CIV",
+          "name": "Ivory Coast"
+        },
+        {
+          "apiFootballId": 2380,
+          "abbreviation": "PAR",
+          "name": "Paraguay"
+        },
+        {
+          "apiFootballId": 23,
+          "abbreviation": "KSA",
+          "name": "Saudi Arabia"
+        },
+        {
+          "apiFootballId": 5530,
+          "abbreviation": "CUR",
+          "name": "Curaçao"
+        }
+      ]
+    },
+    {
+      "colour": "yellow",
+      "displayName": "Yellow Yak",
+      "hexColour": "#eab308",
+      "teams": [
+        {
+          "apiFootballId": 27,
+          "abbreviation": "POR",
+          "name": "Portugal"
+        },
+        {
+          "apiFootballId": 25,
+          "abbreviation": "GER",
+          "name": "Germany"
+        },
+        {
+          "apiFootballId": 16,
+          "abbreviation": "MEX",
+          "name": "Mexico"
+        },
+        {
+          "apiFootballId": 17,
+          "abbreviation": "KOR",
+          "name": "South Korea"
+        },
+        {
+          "apiFootballId": 1090,
+          "abbreviation": "NOR",
+          "name": "Norway"
+        },
+        {
+          "apiFootballId": 28,
+          "abbreviation": "TUN",
+          "name": "Tunisia"
+        },
+        {
+          "apiFootballId": 1567,
+          "abbreviation": "IRQ",
+          "name": "Iraq"
+        },
+        {
+          "apiFootballId": 2386,
+          "abbreviation": "HAI",
+          "name": "Haiti"
+        }
+      ]
+    },
+    {
+      "colour": "blue",
+      "displayName": "Blue Badger",
+      "hexColour": "#3b82f6",
+      "teams": [
+        {
+          "apiFootballId": 2,
+          "abbreviation": "FRA",
+          "name": "France"
+        },
+        {
+          "apiFootballId": 1118,
+          "abbreviation": "NED",
+          "name": "Netherlands"
+        },
+        {
+          "apiFootballId": 13,
+          "abbreviation": "SEN",
+          "name": "Senegal"
+        },
+        {
+          "apiFootballId": 20,
+          "abbreviation": "AUS",
+          "name": "Australia"
+        },
+        {
+          "apiFootballId": 5529,
+          "abbreviation": "CAN",
+          "name": "Canada"
+        },
+        {
+          "apiFootballId": 1108,
+          "abbreviation": "SCO",
+          "name": "Scotland"
+        },
+        {
+          "apiFootballId": 1548,
+          "abbreviation": "JOR",
+          "name": "Jordan"
+        },
+        {
+          "apiFootballId": 4673,
+          "abbreviation": "NZL",
+          "name": "New Zealand"
+        }
+      ]
+    },
+    {
+      "colour": "red",
+      "displayName": "Red Raccoon",
+      "hexColour": "#ef4444",
+      "teams": [
+        {
+          "apiFootballId": 9,
+          "abbreviation": "ESP",
+          "name": "Spain"
+        },
+        {
+          "apiFootballId": 8,
+          "abbreviation": "COL",
+          "name": "Colombia"
+        },
+        {
+          "apiFootballId": 15,
+          "abbreviation": "SUI",
+          "name": "Switzerland"
+        },
+        {
+          "apiFootballId": 22,
+          "abbreviation": "IRN",
+          "name": "Iran"
+        },
+        {
+          "apiFootballId": 11,
+          "abbreviation": "PAN",
+          "name": "Panama"
+        },
+        {
+          "apiFootballId": 770,
+          "abbreviation": "CZE",
+          "name": "Czechia"
+        },
+        {
+          "apiFootballId": 1531,
+          "abbreviation": "RSA",
+          "name": "South Africa"
+        },
+        {
+          "apiFootballId": 1533,
+          "abbreviation": "CPV",
+          "name": "Cape Verde Islands"
+        }
+      ]
+    },
+    {
+      "colour": "purple",
+      "displayName": "Purple Panda",
+      "hexColour": "#a855f7",
+      "teams": [
+        {
+          "apiFootballId": 26,
+          "abbreviation": "ARG",
+          "name": "Argentina"
+        },
+        {
+          "apiFootballId": 1,
+          "abbreviation": "BEL",
+          "name": "Belgium"
+        },
+        {
+          "apiFootballId": 7,
+          "abbreviation": "URU",
+          "name": "Uruguay"
+        },
+        {
+          "apiFootballId": 775,
+          "abbreviation": "AUT",
+          "name": "Austria"
+        },
+        {
+          "apiFootballId": 32,
+          "abbreviation": "EGY",
+          "name": "Egypt"
+        },
+        {
+          "apiFootballId": 5,
+          "abbreviation": "SWE",
+          "name": "Sweden"
+        },
+        {
+          "apiFootballId": 1569,
+          "abbreviation": "QAT",
+          "name": "Qatar"
+        },
+        {
+          "apiFootballId": 1113,
+          "abbreviation": "BIH",
+          "name": "Bosnia & Herzegovina"
+        }
+      ]
+    },
+    {
+      "colour": "orange",
+      "displayName": "Orange Otter",
+      "hexColour": "#f97316",
+      "teams": [
+        {
+          "apiFootballId": 10,
+          "abbreviation": "ENG",
+          "name": "England"
+        },
+        {
+          "apiFootballId": 31,
+          "abbreviation": "MAR",
+          "name": "Morocco"
+        },
+        {
+          "apiFootballId": 12,
+          "abbreviation": "JPN",
+          "name": "Japan"
+        },
+        {
+          "apiFootballId": 777,
+          "abbreviation": "TUR",
+          "name": "Türkiye"
+        },
+        {
+          "apiFootballId": 1532,
+          "abbreviation": "ALG",
+          "name": "Algeria"
+        },
+        {
+          "apiFootballId": 1508,
+          "abbreviation": "CGO",
+          "name": "Congo DR"
+        },
+        {
+          "apiFootballId": 1568,
+          "abbreviation": "UZB",
+          "name": "Uzbekistan"
+        },
+        {
+          "apiFootballId": 1504,
+          "abbreviation": "GHA",
+          "name": "Ghana"
+        }
+      ]
+    }
+  ]
+}
