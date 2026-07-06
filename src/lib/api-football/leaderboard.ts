@@ -80,8 +80,10 @@ export function buildLeaderboard(fixtures: Fixture[], groups: GroupStanding[]): 
   }
 
   // Lowest points first -- this ordering is about the wooden spoon race,
-  // so whoever is currently most at risk of it sits at the top.
-  entries.sort((a, b) => a.totalPoints - b.totalPoints);
+  // so whoever is currently most at risk of it sits at the top. Ties are
+  // broken by fewest teams still in, since fewer teams left means less
+  // chance to climb away from the bottom.
+  entries.sort((a, b) => a.totalPoints - b.totalPoints || a.teamsRemaining - b.teamsRemaining);
 
   return { entries, finalStatus };
 }
