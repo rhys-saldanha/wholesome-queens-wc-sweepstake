@@ -33,7 +33,14 @@ function setCachedPermission(value: PermissionState) {
   permissionListeners.forEach((listener) => listener());
 }
 
-export function GoalNotifications({ fixtures }: { fixtures: Fixture[] }) {
+// Kickoff reminders, largest first so the immediate catch-up check on page
+// load fires only the nearest applicable one.
+const KICKOFF_ALERTS = [
+  { minutes: 30, title: (match: string) => `⏰ ${match} kicks off in 30 minutes` },
+  { minutes: 5, title: (match: string) => `🚨 ${match} is about to start!` },
+] as const;
+
+export function MatchNotifications({ fixtures }: { fixtures: Fixture[] }) {
   const permission = useSyncExternalStore(
     subscribePermission,
     getPermissionSnapshot,
@@ -42,6 +49,9 @@ export function GoalNotifications({ fixtures }: { fixtures: Fixture[] }) {
   // null until the first fixtures snapshot is captured, so we never notify
   // for goals that were already scored before the page loaded.
   const previousGoals = useRef<Map<number, Score> | null>(null);
+  // Kickoff alerts already sent this session, keyed by fixture + threshold,
+  // so the timers rebuilt on every 30s data refresh don't re-fire them.
+  const sentKickoffAlerts = useRef(new Set<string>());
 
   useEffect(() => {
     if ("serviceWorker" in navigator) {
@@ -68,6 +78,42 @@ export function GoalNotifications({ fixtures }: { fixtures: Fixture[] }) {
     previousGoals.current = next;
   }, [fixtures, permission]);
 
+  useEffect(() => {
+    if (permission !== "granted") return;
+
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const now = Date.now();
+
+    for (const fixture of fixtures) {
+      if (!fixture.date || fixture.status !== "NS") continue;
+      const kickoff = new Date(fixture.date).getTime();
+      if (kickoff <= now) continue;
+
+      for (const [index, alert] of KICKOFF_ALERTS.entries()) {
+        const key = `${fixture.id}-${alert.minutes}`;
+        if (sentKickoffAlerts.current.has(key)) continue;
+
+        const send = () => {
+          sentKickoffAlerts.current.add(key);
+          notifyKickoff(fixture, alert.title, kickoff);
+        };
+
+        const fireAt = kickoff - alert.minutes * 60_000;
+        if (fireAt > now) {
+          timers.push(setTimeout(send, fireAt - now));
+        } else {
+          // Page loaded inside this alert's window: fire it immediately,
+          // unless a nearer threshold's window has already begun.
+          const nextAlert = KICKOFF_ALERTS[index + 1];
+          if (!nextAlert || now < kickoff - nextAlert.minutes * 60_000) send();
+          else sentKickoffAlerts.current.add(key);
+        }
+      }
+    }
+
+    return () => timers.forEach(clearTimeout);
+  }, [fixtures, permission]);
+
   if (permission !== "default") return null;
 
   return (
@@ -79,9 +125,25 @@ export function GoalNotifications({ fixtures }: { fixtures: Fixture[] }) {
       }}
       className="rounded-full border border-foreground/20 px-3 py-1 text-xs font-medium text-foreground/70 hover:bg-foreground/5"
     >
-      🔔 Enable goal alerts
+      🔔 Enable match alerts
     </button>
   );
+}
+
+function notifyKickoff(fixture: Fixture, title: (match: string) => string, kickoff: number) {
+  const home = resolveTeam(fixture.homeTeamId);
+  const away = resolveTeam(fixture.awayTeamId);
+  const homePlayer = findPlayerByTeamId(fixture.homeTeamId);
+  const awayPlayer = findPlayerByTeamId(fixture.awayTeamId);
+
+  const sides = [
+    homePlayer ? `${home.name} (${homePlayer.displayName})` : home.name,
+    awayPlayer ? `${away.name} (${awayPlayer.displayName})` : away.name,
+  ];
+  const time = new Date(kickoff).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const body = `${sides.join(" vs ")} · kick-off ${time}`;
+
+  showNotification(title(`${home.name} vs ${away.name}`), body, "/favicon.ico", `kickoff-${fixture.id}`);
 }
 
 function notifyGoal(fixture: Fixture, before: Score, after: Score) {
@@ -95,9 +157,13 @@ function notifyGoal(fixture: Fixture, before: Score, after: Score) {
   const body = `${home.abbreviation} ${after.home}-${after.away} ${away.abbreviation}`;
   const icon = player ? colourDotIcon(player.hexColour) : "/favicon.ico";
 
+  showNotification(title, body, icon, `fixture-${fixture.id}`);
+}
+
+function showNotification(title: string, body: string, icon: string, tag: string) {
   if ("serviceWorker" in navigator) {
     navigator.serviceWorker.ready.then((registration) => {
-      registration.showNotification(title, { body, icon, tag: `fixture-${fixture.id}` });
+      registration.showNotification(title, { body, icon, tag });
     });
   } else {
     new Notification(title, { body, icon });

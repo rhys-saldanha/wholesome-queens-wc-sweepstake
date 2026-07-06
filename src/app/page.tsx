@@ -5,7 +5,7 @@ import { LeaderboardSection } from "@/components/LeaderboardSection";
 import { GroupsGrid } from "@/components/GroupsGrid";
 import { KnockoutBracket } from "@/components/KnockoutBracket";
 import { RefreshControl } from "@/components/RefreshControl";
-import { GoalNotifications } from "@/components/GoalNotifications";
+import { MatchNotifications } from "@/components/MatchNotifications";
 import type { Fixture, GroupStanding } from "@/lib/types";
 
 export default async function Home() {
@@ -34,7 +34,7 @@ export default async function Home() {
         <div className="flex flex-wrap items-baseline justify-between gap-2">
           <h1 className="text-2xl font-bold tracking-tight">World Cup 2026 Sweepstake</h1>
           <div className="flex items-center gap-3">
-            <GoalNotifications fixtures={fixtures} />
+            <MatchNotifications fixtures={fixtures} />
             <RefreshControl lastUpdated={new Date().toISOString()} />
           </div>
         </div>
