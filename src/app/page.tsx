@@ -1,3 +1,4 @@
+import { connection } from "next/server";
 import { getAllFixtures } from "@/lib/api-football/fixtures";
 import { getGroupStandings } from "@/lib/api-football/standings";
 import { buildLeaderboard } from "@/lib/api-football/leaderboard";
@@ -9,6 +10,12 @@ import { MatchNotifications } from "@/components/MatchNotifications";
 import type { Fixture, GroupStanding } from "@/lib/types";
 
 export default async function Home() {
+  // Render at request time so "last updated" reflects the actual request,
+  // not when the CDN's ISR copy was generated (which let manual refreshes
+  // serve pages minutes old). Unlike `dynamic = "force-dynamic"`, this
+  // keeps the 20s fetch cache on API-Football calls intact.
+  await connection();
+
   const [fixturesResult, standingsResult] = await Promise.allSettled([
     getAllFixtures(),
     getGroupStandings(),
