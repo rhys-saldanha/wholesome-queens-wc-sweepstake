@@ -43,9 +43,11 @@ export function getStandingsRevalidateSeconds(): number {
 
 // Fixtures cover both group-stage AND knockout results/live scores -- this
 // is the actual "is a match live right now" signal, so it gets the fast
-// interval. 30s -> ~2,880 calls/day worst case.
+// interval. Kept below the client's 30s auto-refresh so every refresh
+// crosses a cache expiry and picks up fresh data instead of racing it.
+// 20s -> ~4,320 calls/day worst case.
 export function getFixturesRevalidateSeconds(): number {
   const raw = process.env.FIXTURES_REVALIDATE_SECONDS;
   const parsed = raw ? Number(raw) : NaN;
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : 30;
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : 20;
 }
