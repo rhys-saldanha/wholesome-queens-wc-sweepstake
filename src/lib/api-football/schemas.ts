@@ -33,6 +33,10 @@ export const FixtureItemSchema = z.object({
     date: z.string(),
     status: z.object({
       short: FixtureStatusSchema,
+      elapsed: z.number().nullable(),
+      // Added (injury) time on top of `elapsed`; newer API field, so
+      // tolerate it being absent entirely.
+      extra: z.number().nullable().optional(),
     }),
   }),
   league: z.object({

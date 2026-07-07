@@ -111,6 +111,8 @@ export function padKnockoutFixtures(realFixtures: Fixture[]): Fixture[] {
         awayTeamId: feederB ? winnerTeamId(feederB) : null,
         goalsHome: null,
         goalsAway: null,
+        elapsed: null,
+        elapsedExtra: null,
         penaltyWinnerTeamId: null,
       });
     }

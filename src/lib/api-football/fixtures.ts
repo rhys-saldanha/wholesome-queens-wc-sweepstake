@@ -26,6 +26,8 @@ export async function getAllFixtures(): Promise<Fixture[]> {
       awayTeamId: away.id,
       goalsHome: item.goals.home,
       goalsAway: item.goals.away,
+      elapsed: item.fixture.status.elapsed,
+      elapsedExtra: item.fixture.status.extra ?? null,
       penaltyWinnerTeamId,
     };
   });

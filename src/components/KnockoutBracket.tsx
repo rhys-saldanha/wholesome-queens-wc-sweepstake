@@ -32,9 +32,20 @@ function statusLabel(fixture: Fixture): { text: string | null; live: boolean } {
     case "CANC":
     case "ABD":
       return { text: fixture.status, live: false };
-    default:
-      return { text: "LIVE", live: true };
+    default: {
+      const clock = liveClock(fixture);
+      return { text: clock ? `LIVE ${clock}` : "LIVE", live: true };
+    }
   }
+}
+
+/** In-play clock shown next to the LIVE tag: "HT" at half time, else "63'" / "45+3'". */
+function liveClock(fixture: Fixture): string | null {
+  if (fixture.status === "HT") return "HT";
+  if (fixture.elapsed == null) return null;
+  return fixture.elapsedExtra
+    ? `${fixture.elapsed}+${fixture.elapsedExtra}'`
+    : `${fixture.elapsed}'`;
 }
 
 function MatchCard({ fixture }: { fixture: Fixture }) {

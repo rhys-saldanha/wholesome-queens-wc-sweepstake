@@ -44,6 +44,10 @@ export interface Fixture {
   awayTeamId: number | null;
   goalsHome: number | null;
   goalsAway: number | null;
+  /** Current match minute while in play; null before kickoff and after full time. */
+  elapsed: number | null;
+  /** Added (injury) time minutes on top of `elapsed`, when the API reports it. */
+  elapsedExtra: number | null;
   /** Winner as reported by the API once the shootout (if any) is decided. */
   penaltyWinnerTeamId: number | null;
 }
