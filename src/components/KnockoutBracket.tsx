@@ -7,17 +7,6 @@ import type { Fixture } from "@/lib/types";
 
 const FINISHED: Fixture["status"][] = ["FT", "AET", "PEN"];
 
-// One fixed CSS class per round (r32/r16/qf/sf/final), each with its own
-// literal, hardcoded `anchor-name` in globals.css -- no dynamic anchor
-// names, no var() indirection for position-anchor.
-const ROUND_SLUG: Record<string, string> = {
-  "Round of 32": "r32",
-  "Round of 16": "r16",
-  "Quarter-finals": "qf",
-  "Semi-finals": "sf",
-  Final: "final",
-};
-
 function statusLabel(fixture: Fixture): { text: string | null; live: boolean } {
   switch (fixture.status) {
     case "NS":
@@ -133,31 +122,36 @@ function RoundColumn({
   maxHeight: number;
 }) {
   const headingId = `round-${round.replace(/\s+/g, "-").toLowerCase()}`;
-  const slug = ROUND_SLUG[round];
   return (
+    // The wrapper hosts the scrolled-edge glow overlays (globals.css), which
+    // must live on a non-scrolling box so they stay pinned to the edges.
     <div
-      className={`bracket-scroll-y bracket-scroll-y-${slug} flex w-56 flex-shrink-0 flex-col gap-3 overflow-y-auto`}
-      style={
-        {
-          scrollSnapAlign: "start",
-          maxHeight,
-          ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
-        } as CSSProperties
-      }
+      className="bracket-glow-y w-56 flex-shrink-0"
+      style={{ scrollSnapAlign: "start" } as CSSProperties}
     >
-      <h3 id={headingId} className="sticky top-0 bg-background text-sm font-semibold text-foreground/70">
-        {title}
-      </h3>
-      {matches.map(({ fixture, label }) => (
-        <div key={fixture.id} className="flex flex-col gap-1">
-          {label && (
-            <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">
-              {label}
-            </span>
-          )}
-          <MatchCard fixture={fixture} />
-        </div>
-      ))}
+      <div
+        className="bracket-scroll-y flex flex-col gap-3 overflow-y-auto"
+        style={
+          {
+            maxHeight,
+            ...(isCurrent ? { scrollInitialTarget: "nearest" } : {}),
+          } as CSSProperties
+        }
+      >
+        <h3 id={headingId} className="sticky top-0 bg-background text-sm font-semibold text-foreground/70">
+          {title}
+        </h3>
+        {matches.map(({ fixture, label }) => (
+          <div key={fixture.id} className="flex flex-col gap-1">
+            {label && (
+              <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">
+                {label}
+              </span>
+            )}
+            <MatchCard fixture={fixture} />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -176,21 +170,23 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
     // a snap point, and `scroll-initial-target` (Chromium; degrades
     // gracefully to just "starts at the left" elsewhere) declares which
     // snap point the container should be scrolled to on first render.
-    <div
-      className="bracket-scroll-x overflow-x-auto pb-2"
-      style={{ scrollSnapType: "x proximity" } as CSSProperties}
-    >
-      <div className="flex items-start gap-14">
-        {rounds.map((r, i) => (
-          <RoundColumn
-            key={r.round}
-            round={r.round}
-            title={r.title}
-            matches={r.matches}
-            isCurrent={i === currentRoundIndex}
-            maxHeight={maxHeight}
-          />
-        ))}
+    <div className="bracket-glow-x">
+      <div
+        className="bracket-scroll-x overflow-x-auto pb-2"
+        style={{ scrollSnapType: "x proximity" } as CSSProperties}
+      >
+        <div className="flex items-start gap-14">
+          {rounds.map((r, i) => (
+            <RoundColumn
+              key={r.round}
+              round={r.round}
+              title={r.title}
+              matches={r.matches}
+              isCurrent={i === currentRoundIndex}
+              maxHeight={maxHeight}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

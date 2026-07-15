@@ -52,106 +52,108 @@ body {
 }
 
 /*
- * Native scroll-button icons via CSS Anchor Positioning, with fully
- * literal/hardcoded anchor-name + position-anchor pairs (no dynamic names,
- * no var() indirection) and pointer-events: none so they can't receive
- * clicks. Explicitly requested despite two earlier crash reports with
- * variants of this same feature -- see git history for that context.
+ * Orange edge glows that signal "more content this way": each glow sits on
+ * the edge you can still scroll toward and fades out as you reach that end.
+ * (These replaced the native ::scroll-button arrows -- see git history.)
+ *
+ * Pure CSS via scroll-driven animations: the scroller publishes a named
+ * scroll-timeline, its wrapper hoists that name with timeline-scope, and the
+ * wrapper's ::before/::after (which don't move when the content scrolls,
+ * unlike pseudo-elements of the scroller itself) animate opacity along it.
+ * The base state is opacity 0, so when there's no overflow the timeline is
+ * inactive and no glow ever shows. Literal, hardcoded timeline names only --
+ * same house rule as the old anchor names. Each column wrapper scopes its
+ * own --v-glow, so one shared name serves every column.
  */
+.bracket-glow-x,
+.bracket-glow-y {
+  position: relative;
+}
+.bracket-glow-x {
+  timeline-scope: --h-glow;
+}
+.bracket-glow-y {
+  timeline-scope: --v-glow;
+}
 .bracket-scroll-x {
-  anchor-name: --h-scroll;
+  scroll-timeline: --h-glow x;
 }
-.bracket-scroll-y-r32 {
-  anchor-name: --v-scroll-r32;
-}
-.bracket-scroll-y-r16 {
-  anchor-name: --v-scroll-r16;
-}
-.bracket-scroll-y-qf {
-  anchor-name: --v-scroll-qf;
-}
-.bracket-scroll-y-sf {
-  anchor-name: --v-scroll-sf;
-}
-.bracket-scroll-y-final {
-  anchor-name: --v-scroll-final;
+.bracket-scroll-y {
+  scroll-timeline: --v-glow y;
 }
 
-@supports (anchor-name: --foo) and (position-anchor: --foo) {
-  .bracket-scroll-x::scroll-button(left),
-  .bracket-scroll-x::scroll-button(right),
-  .bracket-scroll-y::scroll-button(up),
-  .bracket-scroll-y::scroll-button(down) {
+/* Without animation-timeline support the animations would complete instantly
+   (duration 0, fill both) and freeze every glow on -- so gate the lot. */
+@supports (animation-timeline: scroll()) {
+  .bracket-glow-x::before,
+  .bracket-glow-x::after,
+  .bracket-glow-y::before,
+  .bracket-glow-y::after {
+    content: "";
     position: absolute;
     z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.5rem;
-    height: 1.5rem;
-    border-radius: 9999px;
-    border: 1px solid var(--foreground);
-    opacity: 0.7;
-    background: var(--background);
-    color: var(--foreground);
-    font-size: 0.75rem;
+    opacity: 0;
     pointer-events: none;
-    cursor: default;
   }
 
-  .bracket-scroll-x::scroll-button(left):disabled,
-  .bracket-scroll-x::scroll-button(right):disabled,
-  .bracket-scroll-y::scroll-button(up):disabled,
-  .bracket-scroll-y::scroll-button(down):disabled {
-    display: none;
+  .bracket-glow-x::before,
+  .bracket-glow-x::after {
+    top: 0;
+    bottom: 0.5rem; /* stay clear of the horizontal scrollbar (pb-2) */
+    width: 2rem;
+  }
+  .bracket-glow-x::before {
+    left: 0;
+    background: linear-gradient(to right, rgb(249 115 22 / 0.4), transparent);
+    animation: bracket-glow-more-behind linear both;
+    animation-timeline: --h-glow;
+  }
+  .bracket-glow-x::after {
+    right: 0;
+    background: linear-gradient(to left, rgb(249 115 22 / 0.4), transparent);
+    animation: bracket-glow-more-ahead linear both;
+    animation-timeline: --h-glow;
   }
 
-  .bracket-scroll-x::scroll-button(left) {
-    content: "←" / "";
-    position-anchor: --h-scroll;
-    left: anchor(left);
-    top: anchor(center);
-    transform: translate(4px, -50%);
+  .bracket-glow-y::before,
+  .bracket-glow-y::after {
+    left: 0;
+    right: 0;
+    height: 1.5rem;
   }
-  .bracket-scroll-x::scroll-button(right) {
-    content: "→" / "";
-    position-anchor: --h-scroll;
-    right: anchor(right);
-    top: anchor(center);
-    transform: translate(-4px, -50%);
+  .bracket-glow-y::before {
+    top: 2rem; /* below the sticky round heading (scroll-padding-top) */
+    background: linear-gradient(to bottom, rgb(249 115 22 / 0.4), transparent);
+    animation: bracket-glow-more-behind linear both;
+    animation-timeline: --v-glow;
   }
+  .bracket-glow-y::after {
+    bottom: 0;
+    background: linear-gradient(to top, rgb(249 115 22 / 0.4), transparent);
+    animation: bracket-glow-more-ahead linear both;
+    animation-timeline: --v-glow;
+  }
+}
 
-  .bracket-scroll-y-r32::scroll-button(up),
-  .bracket-scroll-y-r32::scroll-button(down) {
-    position-anchor: --v-scroll-r32;
+/* "Content behind you" glow: hidden at the start edge, on once you've
+   scrolled past the first sliver. */
+@keyframes bracket-glow-more-behind {
+  from {
+    opacity: 0;
   }
-  .bracket-scroll-y-r16::scroll-button(up),
-  .bracket-scroll-y-r16::scroll-button(down) {
-    position-anchor: --v-scroll-r16;
+  8%,
+  to {
+    opacity: 1;
   }
-  .bracket-scroll-y-qf::scroll-button(up),
-  .bracket-scroll-y-qf::scroll-button(down) {
-    position-anchor: --v-scroll-qf;
+}
+/* "Content ahead of you" glow: on until you're within the last sliver of
+   the scroll range, then fades out. */
+@keyframes bracket-glow-more-ahead {
+  from,
+  92% {
+    opacity: 1;
   }
-  .bracket-scroll-y-sf::scroll-button(up),
-  .bracket-scroll-y-sf::scroll-button(down) {
-    position-anchor: --v-scroll-sf;
-  }
-  .bracket-scroll-y-final::scroll-button(up),
-  .bracket-scroll-y-final::scroll-button(down) {
-    position-anchor: --v-scroll-final;
-  }
-
-  .bracket-scroll-y::scroll-button(up) {
-    content: "↑" / "";
-    top: anchor(top);
-    left: anchor(center);
-    transform: translate(-50%, 4px);
-  }
-  .bracket-scroll-y::scroll-button(down) {
-    content: "↓" / "";
-    bottom: anchor(bottom);
-    left: anchor(center);
-    transform: translate(-50%, -4px);
+  to {
+    opacity: 0;
   }
 }
