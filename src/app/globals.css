@@ -122,7 +122,10 @@ body {
     height: 1.5rem;
   }
   .bracket-glow-y::before {
-    top: 2rem; /* below the sticky round heading (scroll-padding-top) */
+    /* Covers the sticky round heading: cards vanish *under* the title, so
+       the glow belongs on the column's true top edge, title included. */
+    top: 0;
+    height: 2.5rem;
     background: linear-gradient(to bottom, rgb(249 115 22 / 0.4), transparent);
     animation: bracket-glow-more-behind linear both;
     animation-timeline: --v-glow;
