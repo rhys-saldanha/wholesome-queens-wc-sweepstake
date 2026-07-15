@@ -1,6 +1,6 @@
 import { apiFootballGet, getFixturesRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
 import { padKnockoutFixtures } from "./knockout-bracket";
-import { KNOCKOUT_ROUND_SIZES } from "@/lib/rounds";
+import { KNOCKOUT_ROUND_ORDER } from "@/lib/rounds";
 import { FixturesResponseSchema } from "./schemas";
 import type { Fixture } from "@/lib/types";
 
@@ -32,7 +32,7 @@ export async function getAllFixtures(): Promise<Fixture[]> {
     };
   });
 
-  const knockoutRoundNames = Object.keys(KNOCKOUT_ROUND_SIZES);
+  const knockoutRoundNames = KNOCKOUT_ROUND_ORDER as readonly string[];
   const otherFixtures = fixtures.filter((f) => !knockoutRoundNames.includes(f.round));
   const knockoutFixtures = fixtures.filter((f) => knockoutRoundNames.includes(f.round));
 

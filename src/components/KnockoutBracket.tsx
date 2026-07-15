@@ -92,9 +92,17 @@ function MatchCard({ fixture }: { fixture: Fixture }) {
   );
 }
 
+interface MatchSlot {
+  fixture: Fixture;
+  // Shown above the card when a column holds more than one kind of match
+  // (the Finals column: "Final" vs "3rd Place Play-off").
+  label?: string;
+}
+
 interface RoundInfo {
   round: string;
-  fixtures: Fixture[];
+  title: string;
+  matches: MatchSlot[];
 }
 
 // Rough height of one match card (including its gap to the next) -- used
@@ -103,6 +111,7 @@ interface RoundInfo {
 // deliberate vertical scroll rather than dictating everyone else's height.
 const CARD_HEIGHT_ESTIMATE = 96;
 const HEADING_HEIGHT_ESTIMATE = 32;
+const MATCH_LABEL_HEIGHT_ESTIMATE = 20;
 
 /**
  * Each round is its own independently-sized column, capped at roughly the
@@ -112,12 +121,14 @@ const HEADING_HEIGHT_ESTIMATE = 32;
  */
 function RoundColumn({
   round,
-  fixtures,
+  title,
+  matches,
   isCurrent,
   maxHeight,
 }: {
   round: string;
-  fixtures: Fixture[];
+  title: string;
+  matches: MatchSlot[];
   isCurrent: boolean;
   maxHeight: number;
 }) {
@@ -135,18 +146,30 @@ function RoundColumn({
       }
     >
       <h3 id={headingId} className="sticky top-0 bg-background text-sm font-semibold text-foreground/70">
-        {round}
+        {title}
       </h3>
-      {fixtures.map((fixture) => (
-        <MatchCard key={fixture.id} fixture={fixture} />
+      {matches.map(({ fixture, label }) => (
+        <div key={fixture.id} className="flex flex-col gap-1">
+          {label && (
+            <span className="text-xs font-medium uppercase tracking-wide text-foreground/50">
+              {label}
+            </span>
+          )}
+          <MatchCard fixture={fixture} />
+        </div>
       ))}
     </div>
   );
 }
 
 function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; currentRoundIndex: number }) {
-  const currentCount = rounds[currentRoundIndex]?.fixtures.length ?? 1;
-  const maxHeight = HEADING_HEIGHT_ESTIMATE + currentCount * CARD_HEIGHT_ESTIMATE;
+  const currentMatches = rounds[currentRoundIndex]?.matches ?? [];
+  const currentCount = currentMatches.length || 1;
+  const labelCount = currentMatches.filter((m) => m.label).length;
+  const maxHeight =
+    HEADING_HEIGHT_ESTIMATE +
+    currentCount * CARD_HEIGHT_ESTIMATE +
+    labelCount * MATCH_LABEL_HEIGHT_ESTIMATE;
 
   return (
     // Pure CSS, no JS: scroll-snap-type + scroll-snap-align make each round
@@ -162,7 +185,8 @@ function BracketGrid({ rounds, currentRoundIndex }: { rounds: RoundInfo[]; curre
           <RoundColumn
             key={r.round}
             round={r.round}
-            fixtures={r.fixtures}
+            title={r.title}
+            matches={r.matches}
             isCurrent={i === currentRoundIndex}
             maxHeight={maxHeight}
           />
@@ -185,20 +209,27 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
     byRound.set(fixture.round, list);
   }
 
+  // The 3rd Place Final shares the last column with the Final rather than
+  // getting its own round: both are played in the same "week" of the bracket,
+  // so the column is titled "Finals" and each match carries its own label.
   const roundNames = (KNOCKOUT_ROUND_ORDER as readonly string[]).filter((r) => r !== "3rd Place Final");
-  const fullRounds: RoundInfo[] = roundNames.map((round) => ({
-    round,
-    fixtures: byRound.get(round) ?? [],
-  }));
-
   const thirdPlace = byRound.get("3rd Place Final")?.[0];
+  const fullRounds: RoundInfo[] = roundNames.map((round) => {
+    const fixtures = byRound.get(round) ?? [];
+    if (round !== "Final") {
+      return { round, title: round, matches: fixtures.map((fixture) => ({ fixture })) };
+    }
+    const matches: MatchSlot[] = fixtures.map((fixture) => ({ fixture, label: "Final" }));
+    if (thirdPlace) matches.push({ fixture: thirdPlace, label: "3rd Place Play-off" });
+    return { round, title: "Finals", matches };
+  });
 
   // The "current" round -- the earliest round that still has an
   // unfinished/not-yet-created match -- is what the bracket auto-scrolls to
   // on load, since it's the last fully-completed round plus whatever's
   // happening now.
   const activeIndex = fullRounds.findIndex((r) =>
-    r.fixtures.some((f) => f.date == null || !FINISHED.includes(f.status)),
+    r.matches.some(({ fixture: f }) => f.date == null || !FINISHED.includes(f.status)),
   );
   const currentRoundIndex = activeIndex === -1 ? fullRounds.length - 1 : activeIndex;
 
@@ -207,13 +238,6 @@ export function KnockoutBracket({ fixtures }: { fixtures: Fixture[] }) {
       <h2 className="text-lg font-semibold">Knockout stage</h2>
 
       <BracketGrid rounds={fullRounds} currentRoundIndex={currentRoundIndex} />
-
-      {thirdPlace && (
-        <div className="flex flex-col gap-2">
-          <h3 className="text-sm font-semibold text-foreground/70">3rd Place Play-off</h3>
-          <MatchCard fixture={thirdPlace} />
-        </div>
-      )}
     </section>
   );
 }

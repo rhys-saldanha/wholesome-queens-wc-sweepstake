@@ -14,6 +14,14 @@ function winnerTeamId(fixture: Fixture): number | null {
   return goalsHome > goalsAway ? homeTeamId : awayTeamId;
 }
 
+// The team knocked out by a finished knockout fixture -- the semi-final
+// losers are who contest the 3rd Place Final.
+function loserTeamId(fixture: Fixture): number | null {
+  const winner = winnerTeamId(fixture);
+  if (winner == null || fixture.homeTeamId == null || fixture.awayTeamId == null) return null;
+  return winner === fixture.homeTeamId ? fixture.awayTeamId : fixture.homeTeamId;
+}
+
 /**
  * Chronological (kickoff-date) order has no relation to bracket topology --
  * two round-of-32 winners that happen to feed the same round-of-16 match
@@ -119,5 +127,22 @@ export function padKnockoutFixtures(realFixtures: Fixture[]): Fixture[] {
     rounds.push(entries);
   });
 
-  return rounds.flat();
+  // The 3rd Place Final sits outside the champion-progression tree (it's fed
+  // by the semi-final *losers*), so it's padded separately here rather than
+  // in the loop above.
+  const thirdPlace = realFixtures.find((f) => f.round === "3rd Place Final") ?? {
+    id: -9001,
+    date: null,
+    round: "3rd Place Final",
+    status: "NS" as const,
+    homeTeamId: loserTeamId(rounds[roundNames.indexOf("Semi-finals")][0]),
+    awayTeamId: loserTeamId(rounds[roundNames.indexOf("Semi-finals")][1]),
+    goalsHome: null,
+    goalsAway: null,
+    elapsed: null,
+    elapsedExtra: null,
+    penaltyWinnerTeamId: null,
+  };
+
+  return [...rounds.flat(), thirdPlace];
 }

@@ -11,8 +11,9 @@ export const KNOCKOUT_ROUND_ORDER = [
 ] as const;
 
 // Expected number of matches per round in the champion-progression bracket
-// (excludes "3rd Place Final", which isn't part of that tree -- see
-// KnockoutBracket.tsx). Used to render the full bracket shape -- including
+// (excludes "3rd Place Final", which isn't part of that tree -- it's padded
+// separately in knockout-bracket.ts). Used to render the full bracket shape --
+// including
 // rounds/matches the API hasn't populated yet -- as TBD placeholders.
 export const KNOCKOUT_ROUND_SIZES: Record<string, number> = {
   "Round of 32": 16,
