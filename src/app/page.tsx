@@ -16,16 +16,25 @@ export default async function Home() {
   // keeps the 20s fetch cache on API-Football calls intact.
   await connection();
 
+  // The getters serve their last-known-good result (stale: true) when the
+  // API fails -- they only reject when there's never been a good result to
+  // fall back on (e.g. a cold instance whose very first fetch fails).
   const [fixturesResult, standingsResult] = await Promise.allSettled([
     getAllFixtures(),
     getGroupStandings(),
   ]);
 
-  const fixtures: Fixture[] = fixturesResult.status === "fulfilled" ? fixturesResult.value : [];
-  const groups: GroupStanding[] = standingsResult.status === "fulfilled" ? standingsResult.value : [];
-  const hasError = fixturesResult.status === "rejected" || standingsResult.status === "rejected";
+  const fixtures: Fixture[] =
+    fixturesResult.status === "fulfilled" ? fixturesResult.value.data : [];
+  const groups: GroupStanding[] =
+    standingsResult.status === "fulfilled" ? standingsResult.value.data : [];
+  const hasError =
+    fixturesResult.status !== "fulfilled" ||
+    fixturesResult.value.stale ||
+    standingsResult.status !== "fulfilled" ||
+    standingsResult.value.stale;
 
-  if (hasError) {
+  if (fixturesResult.status === "rejected" || standingsResult.status === "rejected") {
     console.error(
       "Live data fetch failed:",
       fixturesResult.status === "rejected" ? fixturesResult.reason : null,

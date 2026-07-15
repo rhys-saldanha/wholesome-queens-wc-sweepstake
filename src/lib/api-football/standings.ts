@@ -1,4 +1,5 @@
 import { apiFootballGet, getStandingsRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
+import { withLastKnownGood } from "./last-known-good";
 import { StandingsResponseSchema } from "./schemas";
 import type { GroupStanding } from "@/lib/types";
 
@@ -10,7 +11,9 @@ function isLetteredGroup(groupName: string): boolean {
   return /^Group [A-Z]$/.test(groupName);
 }
 
-export async function getGroupStandings(): Promise<GroupStanding[]> {
+export const getGroupStandings = withLastKnownGood(fetchGroupStandings);
+
+async function fetchGroupStandings(): Promise<GroupStanding[]> {
   const raw = await apiFootballGet(
     `/standings?league=${LEAGUE_ID}&season=${SEASON}`,
     getStandingsRevalidateSeconds(),

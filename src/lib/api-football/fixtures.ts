@@ -1,10 +1,13 @@
 import { apiFootballGet, getFixturesRevalidateSeconds, LEAGUE_ID, SEASON } from "./client";
+import { withLastKnownGood } from "./last-known-good";
 import { padKnockoutFixtures } from "./knockout-bracket";
 import { KNOCKOUT_ROUND_ORDER } from "@/lib/rounds";
 import { FixturesResponseSchema } from "./schemas";
 import type { Fixture } from "@/lib/types";
 
-export async function getAllFixtures(): Promise<Fixture[]> {
+export const getAllFixtures = withLastKnownGood(fetchAllFixtures);
+
+async function fetchAllFixtures(): Promise<Fixture[]> {
   const raw = await apiFootballGet(
     `/fixtures?league=${LEAGUE_ID}&season=${SEASON}`,
     getFixturesRevalidateSeconds(),
